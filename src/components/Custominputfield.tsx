@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, TextInput, Text, StyleSheet } from 'react-native';
+import { Colors } from '../styles/Globalcss';
 
 type CustomInputProps = {
     value: string;
@@ -43,17 +44,16 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 50,
         backgroundColor: '#fff',
-        borderRadius: 12,
         paddingHorizontal: 16,
         fontSize: 16,
-        color: '#333',
+        color: Colors.primaryborder,
         borderWidth: 1,
-        borderColor: '#e0e0e0', // Light gray border
-        shadowColor: '#000',
+        borderColor: Colors.secondaryborder,
+        shadowColor: Colors.primaryshadowcolor,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
-        elevation: 2, // Slight elevation for shadow on Android
+        elevation: 2,
     },
     errorBorder: {
         borderColor: 'red',

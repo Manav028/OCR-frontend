@@ -19,12 +19,15 @@ const Globalcss = StyleSheet.create({
 })
 
 const Colors = {
-    primarybackground: '#f7f7f7',
+    primarybackground: 'white',
     secondarybackground : '#4c669f',
+    thirdbackground : 'black',
     primartext : '#333',
     secondarytext : '#666',
     thirdtext : 'white',
-    primaryshadowcolor : '#000'
+    primaryshadowcolor : '#000',
+    primaryborder : '#333', 
+    secondaryborder: 'black'
 };
 
 const FontSizes = {
@@ -32,5 +35,12 @@ const FontSizes = {
     medium: 16,
     large: 20,
 };
+
+const fontfamily = {
+    SpaceMonoBold : 'SpaceMono-Bold',
+    SpaceMonoBoldItalic : 'SpaceMono-BoldItalic',
+    SpaceMonoItalic : 'SpaceMono-Italic',
+    SpaceMonoRegular : 'SpaceMono-Regular',
+};
   
-export { Globalcss, Colors, FontSizes };
+export { Globalcss, Colors, FontSizes , fontfamily};

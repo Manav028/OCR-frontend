@@ -6,8 +6,10 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '@env';
 import CustomInput from '../components/Custominputfield';
-import { Globalcss, Colors, FontSizes } from '../styles/Globalcss'
+import { Globalcss, Colors, FontSizes, fontfamily } from '../styles/Globalcss'
 import { ScrollView } from 'react-native-gesture-handler';
+import Screenheading from '../components/Screenheading'
+import MainButton from '../components/MainButton';
 
 const { height } = Dimensions.get('window');
 
@@ -34,16 +36,17 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     };
 
     const handleLogin = async () => {
+
         setEmailError(null)
         setPasswordError(null)
         setLoginError(null)
+
         if (!handleEmpty()) {
             return;
         }
-
+        console.log(API_URL)
         try {
             const response = await axios.post(`${API_URL}/api/auth/signin`, { email, password });
-            console.log(API_URL)
             if (response.data && response.data.token) {
                 await AsyncStorage.setItem('token', response.data.token);
                 Alert.alert('Login Successful', 'You are now logged in!');
@@ -84,8 +87,10 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                 showsVerticalScrollIndicator={false}
             >
                 <View style={styles.container}>
-                    <Text style={styles.title}>Welcome Back</Text>
-                    <Text style={styles.subtitle}>Log in to your account</Text>
+
+                    <View style={styles.textcontainer}>
+                        <Screenheading />
+                    </View>
 
                     <CustomInput
                         placeholder="Email"
@@ -110,22 +115,22 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                         secureTextEntry
                     />
 
-                    <TouchableOpacity style={styles.button} onPress={handleLogin}>
-                        <Text style={styles.buttonText}>Login</Text>
-                    </TouchableOpacity>
+                    <MainButton title={"Logi In"} onPress={handleLogin} />
 
                     {loginError && <Text style={styles.loginErrorText}>{loginError}</Text>}
 
-                    <TouchableOpacity onPress={()=>{navigation.navigate('Register')}}>
-                    <Text style={styles.registerText}>
-                            Don't have an account?{' '}
-                            <Text
-                                style={styles.registerLink}>
-                                Register
+                    <TouchableOpacity onPress={() => { navigation.navigate('Register') }}>
+                        <View style={styles.lineContainer}>
+                            <Text style={styles.registerText}>
+                                Don't have an account?{' '}
+                                <Text style={styles.registerLink}>
+                                    Register
+                                </Text>
                             </Text>
-                        </Text>
+                        </View>
                     </TouchableOpacity>
-                    
+
+
 
                 </View>
             </ScrollView>
@@ -141,31 +146,8 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.primarybackground,
         minHeight: height,
     },
-    title: {
-        fontSize: height > 600 ? 28 : 24,
-        fontWeight: 'bold',
-        color: Colors.primartext,
-        textAlign: 'center',
-        marginBottom: 8,
-    },
-    subtitle: {
-        fontSize: height > 600 ? 16 : 14,
-        color: Colors.secondarytext,
-        textAlign: 'center',
-        marginBottom: 24,
-    },
-    button: {
-        height: '8%',
-        backgroundColor: Colors.secondarybackground,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: '5%',
-    },
-    buttonText: {
-        fontSize: height > 600 ? 18 : 16,
-        fontWeight: 'bold',
-        color: Colors.thirdtext,
+    textcontainer: {
+        marginBottom: 25,
     },
     loginErrorText: {
         color: 'red',
@@ -173,16 +155,22 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 12,
     },
-    registerText: {
-        color: Colors.primartext,
+    lineContainer: {
+        alignSelf : 'center',
         marginTop: 16,
+        borderBottomWidth : 1,
+
+      },
+      registerText: {
+        color: Colors.primartext,
         fontSize: 14,
         textAlign: 'center',
-    },
-    registerLink: {
-        color: Colors.secondarybackground,
-        fontWeight: 'bold',
-    },
+        fontFamily: fontfamily.SpaceMonoRegular,
+      },
+      registerLink: {
+        color: Colors.primartext,
+        fontFamily: fontfamily.SpaceMonoBold,
+      },
 });
 
 export default LoginScreen;
