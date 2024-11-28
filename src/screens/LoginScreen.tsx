@@ -40,16 +40,16 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
         setEmailError(null)
         setPasswordError(null)
         setLoginError(null)
+        
 
         if (!handleEmpty()) {
             return;
         }
-        console.log(API_URL)
+
         try {
             const response = await axios.post(`${API_URL}/api/auth/signin`, { email, password });
             if (response.data && response.data.token) {
                 await AsyncStorage.setItem('token', response.data.token);
-                Alert.alert('Login Successful', 'You are now logged in!');
                 navigation.replace('Home');
             }
         } catch (error: any) {
@@ -89,7 +89,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                 <View style={styles.container}>
 
                     <View style={styles.textcontainer}>
-                        <Screenheading />
+                        <Screenheading title={'Login in to get started'} subtitle={"Sign In"} />
                     </View>
 
                     <CustomInput
@@ -115,12 +115,12 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                         secureTextEntry
                     />
 
-                    <MainButton title={"Logi In"} onPress={handleLogin} />
+                    <MainButton title={"Sign In"} onPress={handleLogin} />
 
                     {loginError && <Text style={styles.loginErrorText}>{loginError}</Text>}
 
                     <TouchableOpacity onPress={() => { navigation.navigate('Register') }}>
-                        <View style={styles.lineContainer}>
+                            <View style={styles.lineContainer}>
                             <Text style={styles.registerText}>
                                 Don't have an account?{' '}
                                 <Text style={styles.registerLink}>
@@ -129,8 +129,6 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                             </Text>
                         </View>
                     </TouchableOpacity>
-
-
 
                 </View>
             </ScrollView>

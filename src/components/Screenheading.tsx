@@ -4,14 +4,19 @@ import { Colors, fontfamily } from '../styles/Globalcss';
 
 const {height} = Dimensions.get('window')
 
-const Screenheading = () => {
+interface Screenheadingprops {
+  title : String,
+  subtitle : String
+}
+
+const Screenheading : React.FC<Screenheadingprops> = ({title,subtitle}) => {
   return (
     <View style={styles.container}>
     
-      <Text style={styles.title}>Login in to get Started</Text>
+      <Text style={styles.title}>{title}</Text>
     
     <View style={styles.textcontainer}>
-      <Text style={styles.subtitle}>Sign In</Text>
+      <Text style={styles.subtitle}>{subtitle}</Text>
     </View>
     </View>
   );
