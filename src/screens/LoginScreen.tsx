@@ -10,6 +10,8 @@ import { Globalcss, Colors, FontSizes, fontfamily } from '../styles/Globalcss'
 import { ScrollView } from 'react-native-gesture-handler';
 import Screenheading from '../components/Screenheading'
 import MainButton from '../components/MainButton';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import CustomStatusBar from '../components/CustomStatusBar';
 
 const { height } = Dimensions.get('window');
 
@@ -77,7 +79,14 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     };
 
     return (
-        <KeyboardAvoidingView
+        <SafeAreaView style={styles.safeArea}>
+
+            <CustomStatusBar
+                backgroundColor={Colors.primarybackground}
+                translucent={false}
+            />
+
+            <KeyboardAvoidingView
             style={{ flex: 1 }}
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
@@ -133,10 +142,14 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
+    safeArea:{
+        flex : 1
+    },
     container: {
         flex: 1,
         justifyContent: 'center',

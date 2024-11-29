@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, TextInput, Dimensions, KeyboardAvoidingView, Platform, } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity, SafeAreaView, TextInput, Dimensions, KeyboardAvoidingView, Platform, StatusBar, } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
 import CustomInput from '../components/Custominputfield'
@@ -10,6 +10,8 @@ import { ScrollView } from 'react-native-gesture-handler';
 import Screenheading from '../components/Screenheading'
 import MainButton from '../components/MainButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CustomStatusBar from '../components/CustomStatusBar';
+
 
 const { height } = Dimensions.get('window')
 
@@ -55,7 +57,10 @@ const RegisterScreen: React.FC<RegisterScreenProp> = ({ navigation }: RegisterSc
         setregistererror(null)
         setusernameError(null)
 
-        
+        // navigation.reset({
+        //     index: 0,
+        //     routes: [{ name: 'TutorialScreen' }],
+        // });
 
         if (!handleempty()) {
             return
@@ -96,86 +101,93 @@ const RegisterScreen: React.FC<RegisterScreenProp> = ({ navigation }: RegisterSc
     };
 
     return (
-        <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-            <ScrollView
-                style={Globalcss.ScroolViewContainer}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
+        <SafeAreaView style={styles.safeArea}>
+            <CustomStatusBar
+                backgroundColor={Colors.primarybackground}
+                translucent={false}
+            />
+
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
-                <View style={styles.container}>
-
-                    <View style={styles.textcontainer}>
-                        <Screenheading title={'Create account to get started'} subtitle={"Sign Up"} />
-                    </View>
-
-                    <CustomInput
-                        placeholder='Username'
-                        value={username}
-                        onChangeText={(value) => {
-                            setUsername(value)
-                            setusernameError(null)
-                        }}
-                        keyboardType='email-address'
-                        error={usernameError}
-                    />
-                    <CustomInput
-                        placeholder='Email'
-                        value={email}
-                        onChangeText={(value) => {
-                            setEmail(value)
-                            setEmailError(null)
-                        }}
-                        keyboardType='email-address'
-                        error={emailError}
-                    />
-                    <CustomInput
-                        placeholder="Password"
-                        value={password}
-                        onChangeText={(value) => {
-                            setPassword(value);
-                            setPasswordError(null);
-                        }}
-                        error={passwordError}
-                        secureTextEntry
-                    />
-                    <CustomInput
-                        placeholder="Confirm Password"
-                        value={confirmPassword}
-                        onChangeText={(value) => {
-                            setConfirmPassword(value);
-                            setconfirmPassworderror(null);
-                        }}
-                        error={confirmPassworderror}
-                        secureTextEntry
-                    />
-
-                    <MainButton title={"Sign Up"} onPress={handleRegister} />
-
-                    {registererror && <Text style={styles.registerErrorText}>{registererror}</Text>}
-
-                    <TouchableOpacity onPress={() => { navigation.navigate('Login') }}>
-                        <View style={styles.lineContainer}>
-                            <Text style={styles.registerText}>
-                                Already have an account?{' '}
-                                <Text style={styles.registerLink}>
-                                    Sign Up
-                                </Text>
-                            </Text>
+                <ScrollView
+                    style={styles.scrollView}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.container}>
+                        <View style={styles.textcontainer}>
+                            <Screenheading title={'Create account to get started'} subtitle={'Sign Up'} />
                         </View>
-                    </TouchableOpacity>
+
+                        <CustomInput
+                            placeholder="Username"
+                            value={username}
+                            onChangeText={(value) => {
+                                setUsername(value);
+                                setusernameError(null);
+                            }}
+                            keyboardType="email-address"
+                            error={usernameError}
+                        />
+                        <CustomInput
+                            placeholder="Email"
+                            value={email}
+                            onChangeText={(value) => {
+                                setEmail(value);
+                                setEmailError(null);
+                            }}
+                            keyboardType="email-address"
+                            error={emailError}
+                        />
+                        <CustomInput
+                            placeholder="Password"
+                            value={password}
+                            onChangeText={(value) => {
+                                setPassword(value);
+                                setPasswordError(null);
+                            }}
+                            error={passwordError}
+                            secureTextEntry
+                        />
+                        <CustomInput
+                            placeholder="Confirm Password"
+                            value={confirmPassword}
+                            onChangeText={(value) => {
+                                setConfirmPassword(value);
+                                setconfirmPassworderror(null);
+                            }}
+                            error={confirmPassworderror}
+                            secureTextEntry
+                        />
+
+                        <MainButton title={'Sign Up'} onPress={handleRegister} />
+
+                        {registererror && <Text style={styles.registerErrorText}>{registererror}</Text>}
+
+                        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                            <View style={styles.lineContainer}>
+                                <Text style={styles.registerText}>
+                                    Already have an account?{' '}
+                                    <Text style={styles.registerLink}>Log In</Text>
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
 
 
-
-                </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1
+    },
+
     container: {
         flex: 1,
         justifyContent: 'center',
@@ -185,6 +197,9 @@ const styles = StyleSheet.create({
     },
     textcontainer: {
         marginBottom: 25,
+    },
+    scrollView: {
+        flex: 1,
     },
     registerErrorText: {
         color: 'red',

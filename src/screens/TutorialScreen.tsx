@@ -4,24 +4,27 @@ import { Colors, FontSizes, fontfamily } from '../styles/Globalcss';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
 import MainButton from '../components/MainButton';
+import CustomStatusBar from '../components/CustomStatusBar';
+import CustomBottomBar from '../components/CustomBottomBar';
+
 
 const { width } = Dimensions.get('window');
 
 const slides = [
     {
         key: '1',
-        title: 'Welcome to the App',
-        text: 'Track your fitness journey like never before!',
+        title: 'Welcome to OCR Master',
+        text: 'Extract and summarize text from images effortlessly!',
     },
     {
         key: '2',
-        title: 'Stay Motivated',
-        text: 'Set goals and earn rewards as you progress.',
+        title: 'Streamline Your Workflow',
+        text: 'Convert images to text and quickly generate summaries.',
     },
     {
         key: '3',
-        title: 'Join the Community',
-        text: 'Connect with others and share your achievements!',
+        title: 'Save and Share',
+        text: 'Organize extracted text and share it with ease.',
     },
 ];
 
@@ -55,11 +58,18 @@ const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) => {
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
         >
+
+            <CustomStatusBar
+                backgroundColor={Colors.fourthbackgroound}
+                barStyle="dark-content"
+                translucent={false}
+            />
             <View style={styles.shadowContainer}>
-    
+
                 <View style={styles.shadowView} />
-                
+
                 <View style={styles.boxContainer}>
+
                     <View style={styles.slide}>
                         <Text style={styles.title}>{slides[currentSlide].title}</Text>
                         <Text style={styles.text}>{slides[currentSlide].text}</Text>
@@ -111,9 +121,9 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 10,
         left: 10,
-        width: '100%', 
-        height: '100%', 
-        backgroundColor: '#000', 
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#000',
         opacity: 1,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 5 },
@@ -122,7 +132,7 @@ const styles = StyleSheet.create({
         elevation: 10,
         zIndex: -1,
     },
-    
+
     boxContainer: {
         backgroundColor: Colors.primarybackground,
         borderWidth: 3,
