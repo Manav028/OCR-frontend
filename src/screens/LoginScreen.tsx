@@ -23,6 +23,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     const [emailError, setEmailError] = useState<string | null>(null);
     const [passwordError, setPasswordError] = useState<string | null>(null);
     const [loginError, setLoginError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
     const handleEmpty = () => {
         let isValid = true;
@@ -42,13 +43,14 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
         setEmailError(null)
         setPasswordError(null)
         setLoginError(null)
-        
+
 
         if (!handleEmpty()) {
             return;
         }
 
         try {
+            setLoading(true)
             const response = await axios.post(`${API_URL}/api/auth/signin`, { email, password });
             if (response.data && response.data.token) {
                 await AsyncStorage.setItem('token', response.data.token);
@@ -69,11 +71,29 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                     setLoginError('Invalid email or password');
                     return;
                 }
+                else if (errorData.email === 'User not found') {
+                    setEmailError(null)
+                    setPasswordError(null)
+                    setLoginError('User not found, please register');
+                    return
+                }
+                else if (errorData.email === "Email is not verified") {
+                    setEmailError(null)
+                    setPasswordError(null)
+                    const response = await axios.post(`${API_URL}/api/auth/resendOTP`, { email });
+                    if(response.data && response.data.message){
+                        navigation.navigate('VerifyOTPScreen',{email})
+                        return
+                    }
+                }
                 setEmailError(errorData.email || null);
                 setPasswordError(errorData.password || null);
             } else {
                 Alert.alert('Login Error', 'An error occurred during login. Please try again.');
             }
+        }
+        finally {
+            setLoading(false)
         }
 
     };
@@ -87,68 +107,68 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
             />
 
             <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
-            <ScrollView
-                style={Globalcss.ScroolViewContainer}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
-                <View style={styles.container}>
+                <ScrollView
+                    style={Globalcss.ScroolViewContainer}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.container}>
 
-                    <View style={styles.textcontainer}>
-                        <Screenheading title={'Login in to get started'} subtitle={"Sign In"} />
-                    </View>
-
-                    <CustomInput
-                        placeholder="Email"
-                        value={email}
-                        onChangeText={(value) => {
-                            setEmail(value);
-                            setEmailError(null);
-                        }}
-                        error={emailError}
-                        keyboardType="email-address"
-                    />
-
-                    <CustomInput
-                        placeholder="Password"
-                        value={password}
-                        onChangeText={(value) => {
-                            setPassword(value);
-                            setPasswordError(null);
-                        }}
-                        error={passwordError}
-                        keyboardType="default"
-                        secureTextEntry
-                    />
-
-                    <MainButton title={"Sign In"} onPress={handleLogin} />
-
-                    {loginError && <Text style={styles.loginErrorText}>{loginError}</Text>}
-
-                    <TouchableOpacity onPress={() => { navigation.navigate('Register') }}>
-                            <View style={styles.lineContainer}>
-                            <Text style={styles.registerText}>
-                                Don't have an account?{' '}
-                                <Text style={styles.registerLink}>
-                                    Register
-                                </Text>
-                            </Text>
+                        <View style={styles.textcontainer}>
+                            <Screenheading title={'Login in to get started'} subtitle={"Sign In"} />
                         </View>
-                    </TouchableOpacity>
 
-                </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+                        <CustomInput
+                            placeholder="Email"
+                            value={email}
+                            onChangeText={(value) => {
+                                setEmail(value);
+                                setEmailError(null);
+                            }}
+                            error={emailError}
+                            keyboardType="email-address"
+                        />
+
+                        <CustomInput
+                            placeholder="Password"
+                            value={password}
+                            onChangeText={(value) => {
+                                setPassword(value);
+                                setPasswordError(null);
+                            }}
+                            error={passwordError}
+                            keyboardType="default"
+                            secureTextEntry
+                        />
+
+                        <MainButton title={"Sign In"} onPress={handleLogin} loading={loading} />
+
+                        {loginError && <Text style={styles.loginErrorText}>{loginError}</Text>}
+
+                        <TouchableOpacity onPress={() => { navigation.navigate('Register') }}>
+                            <View style={styles.lineContainer}>
+                                <Text style={styles.registerText}>
+                                    Don't have an account?{' '}
+                                    <Text style={styles.registerLink}>
+                                        Register
+                                    </Text>
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    safeArea:{
-        flex : 1
+    safeArea: {
+        flex: 1
     },
     container: {
         flex: 1,
@@ -167,21 +187,21 @@ const styles = StyleSheet.create({
         marginTop: 12,
     },
     lineContainer: {
-        alignSelf : 'center',
+        alignSelf: 'center',
         marginTop: 16,
-        borderBottomWidth : 1,
+        borderBottomWidth: 1,
 
-      },
-      registerText: {
+    },
+    registerText: {
         color: Colors.primartext,
         fontSize: 14,
         textAlign: 'center',
         fontFamily: fontfamily.SpaceMonoRegular,
-      },
-      registerLink: {
+    },
+    registerLink: {
         color: Colors.primartext,
         fontFamily: fontfamily.SpaceMonoBold,
-      },
+    },
 });
 
 export default LoginScreen;

@@ -28,6 +28,7 @@ const RegisterScreen: React.FC<RegisterScreenProp> = ({ navigation }: RegisterSc
     const [usernameError, setusernameError] = useState<string | null>(null);
     const [confirmPassworderror, setconfirmPassworderror] = useState<string | null>(null);
     const [registererror, setregistererror] = useState<String | null>()
+    const [loading, setLoading] = useState(false);
 
     const handleempty = () => {
         let isValid = true;
@@ -57,24 +58,19 @@ const RegisterScreen: React.FC<RegisterScreenProp> = ({ navigation }: RegisterSc
         setregistererror(null)
         setusernameError(null)
 
-        // navigation.reset({
-        //     index: 0,
-        //     routes: [{ name: 'TutorialScreen' }],
-        // });
-
         if (!handleempty()) {
             return
         }
 
+        console.log(API_URL)
+
         try {
+            setLoading(true)
             console.log(API_URL)
             const response = await axios.post(`${API_URL}/api/auth/signup`, { username, email, password })
             if (response.data && response.data.token) {
                 await AsyncStorage.setItem('token', response.data.token);
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'TutorialScreen' }],
-                });
+                navigation.navigate('VerifyOTPScreen',{email})
             }
         } catch (error: any) {
             console.log(error)
@@ -93,9 +89,13 @@ const RegisterScreen: React.FC<RegisterScreenProp> = ({ navigation }: RegisterSc
                 }
                 setEmailError(errorData.email || null)
                 setPasswordError(errorData.password || null)
+                setusernameError(errorData.username || null)
             } else {
                 Alert.alert('Register Error', 'An error occurred during login. Please try again.');
             }
+        }
+        finally{
+            setLoading(false)
         }
 
     };
@@ -117,6 +117,7 @@ const RegisterScreen: React.FC<RegisterScreenProp> = ({ navigation }: RegisterSc
                     showsVerticalScrollIndicator={false}
                 >
                     <View style={styles.container}>
+                        
                         <View style={styles.textcontainer}>
                             <Screenheading title={'Create account to get started'} subtitle={'Sign Up'} />
                         </View>
@@ -162,7 +163,7 @@ const RegisterScreen: React.FC<RegisterScreenProp> = ({ navigation }: RegisterSc
                             secureTextEntry
                         />
 
-                        <MainButton title={'Sign Up'} onPress={handleRegister} />
+                        <MainButton title={'Sign Up'} onPress={handleRegister} loading={loading} />
 
                         {registererror && <Text style={styles.registerErrorText}>{registererror}</Text>}
 

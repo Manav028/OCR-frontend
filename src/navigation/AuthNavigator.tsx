@@ -5,6 +5,8 @@ import RegisterScreen from '../screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
 import TokenAuth  from '../screens/TokenAuth';
 import TutorialScreen from '../screens/TutorialScreen';
+import VerifyOTPScreen from '../screens/VerfiyOTPScreen'
+
 
 export type AuthStackParamList = {
     Login: undefined;
@@ -12,9 +14,12 @@ export type AuthStackParamList = {
     Home : undefined;
     TokenAuth : undefined;
     TutorialScreen : undefined
+    VerifyOTPScreen : {"email" : String}
 };
 
 const Stack = createStackNavigator<AuthStackParamList>();
+
+
 
 const AuthNavigator: React.FC = () => (
     <Stack.Navigator
@@ -25,6 +30,7 @@ const AuthNavigator: React.FC = () => (
             ...TransitionPresets.SlideFromRightIOS,
         }}
     >
+        <Stack.Screen name='VerifyOTPScreen' component={VerifyOTPScreen}/>
         <Stack.Screen name='TokenAuth' component={TokenAuth}/>
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
