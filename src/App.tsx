@@ -1,14 +1,15 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import AppNavigator from '../src/navigation/AuthNavigator';
-import { StatusBar } from 'react-native';
-import {Colors} from './styles/Globalcss'
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import HomeScreen from './screens/HomeScreen';
+import AppNavigator from './navigation/AppNavigator';
+
 
 function App(): React.JSX.Element {
+  const Tab = createBottomTabNavigator();
+  
   return (
-    <NavigationContainer>
-      <AppNavigator />  
-    </NavigationContainer>
+    <AppNavigator/>
   );
 }
 
