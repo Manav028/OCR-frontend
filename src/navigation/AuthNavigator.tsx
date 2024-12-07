@@ -4,6 +4,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 import TutorialScreen from '../screens/TutorialScreen';
 import VerifyOTPScreen from '../screens/VerfiyOTPScreen'
 import LoginScreen from '../screens/LoginScreen';
+import BottomBarNavigator from './BottomBarNavigator';
 
 export type AuthStackParamList = {
     Login: undefined;
@@ -23,6 +24,7 @@ const AuthNavigator: React.FC = () => (
             gestureEnabled: true,
             ...TransitionPresets.SlideFromRightIOS,
         }}>
+        <Stack.Screen name='Main' component={BottomBarNavigator}/>
         <Stack.Screen name='Login' component={LoginScreen}/>
         <Stack.Screen name='VerifyOTPScreen' component={VerifyOTPScreen} />        
         <Stack.Screen name="Register" component={RegisterScreen} />

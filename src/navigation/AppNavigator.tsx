@@ -15,10 +15,9 @@ const AppNavigator = () => {
 
   useEffect(() => {
     const checkLoginStatus = async () => {
-      try { 
-        AsyncStorage.clear();
+      try {
         const token = await AsyncStorage.getItem('token');
-        setIsAuthenticated(!!token);
+        setIsAuthenticated(true);
       } catch (error) {
         console.error('Error checking login status:', error);
         setIsAuthenticated(false);
@@ -33,7 +32,7 @@ const AppNavigator = () => {
 
     return () => clearTimeout(splashTimer);
   }, []);
-
+  
   if (!isSplashComplete) {
     return (
       <View style={styles.container}>

@@ -44,57 +44,60 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
         setPasswordError(null)
         setLoginError(null)
 
-        // if (!handleEmpty()) {
-        //     return;
-        // }
+        if (!handleEmpty()) {
+            return;
+        }
 
-        // try {
-        //     console.log("manac")
-        //     setLoading(true)
-        //     const response = await axios.post(`${API_URL}/api/auth/signin`, { email, password });
-        //     if (response.data && response.data.token) {
-        //         await AsyncStorage.setItem('token', response.data.token);
-        //         navigation.replace('Main');
-        //     }
-        // } catch (error: any) {
-        //     console.log(error);
+        try {
+            console.log("manac")
+            setLoading(true)
+            const response = await axios.post(`${API_URL}/api/auth/signin`, { email, password });
+            if (response.data && response.data.token) {
+                await AsyncStorage.setItem('token', response.data.token);
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Main' }],
+                  });
+            }
+        } catch (error: any) {
+            console.log(error);
 
-        //     if (error.response && error.response.data) {
-        //         const errorData = error.response.data.error;
-        //         console.log('Error Data:', errorData);
-        //         if (
-        //             errorData.email === 'Invalid email or password' &&
-        //             errorData.password === 'Invalid email or password'
-        //         ) {
-        //             setEmailError(null)
-        //             setPasswordError(null)
-        //             setLoginError('Invalid email or password');
-        //             return;
-        //         }
-        //         else if (errorData.email === 'User not found') {
-        //             setEmailError(null)
-        //             setPasswordError(null)
-        //             setLoginError('User not found, please register');
-        //             return
-        //         }
-        //         else if (errorData.email === "Email is not verified") {
-        //             setEmailError(null)
-        //             setPasswordError(null)
-        //             const response = await axios.post(`${API_URL}/api/auth/resendOTP`, { email });
-        //             if(response.data && response.data.message){
-        //                 navigation.navigate('VerifyOTPScreen',{email})
-        //                 return
-        //             }
-        //         }
-        //         setEmailError(errorData.email || null);
-        //         setPasswordError(errorData.password || null);
-        //     } else {
-        //         Alert.alert('Login Error', 'An error occurred during login. Please try again.');
-        //     }
-        // }
-        // finally {
-        //     setLoading(false)
-        // }
+            if (error.response && error.response.data) {
+                const errorData = error.response.data.error;
+                console.log('Error Data:', errorData);
+                if (
+                    errorData.email === 'Invalid email or password' &&
+                    errorData.password === 'Invalid email or password'
+                ) {
+                    setEmailError(null)
+                    setPasswordError(null)
+                    setLoginError('Invalid email or password');
+                    return;
+                }
+                else if (errorData.email === 'User not found') {
+                    setEmailError(null)
+                    setPasswordError(null)
+                    setLoginError('User not found, please register');
+                    return
+                }
+                else if (errorData.email === "Email is not verified") {
+                    setEmailError(null)
+                    setPasswordError(null)
+                    const response = await axios.post(`${API_URL}/api/auth/resendOTP`, { email });
+                    if(response.data && response.data.message){
+                        navigation.navigate('VerifyOTPScreen',{email})
+                        return
+                    }
+                }
+                setEmailError(errorData.email || null);
+                setPasswordError(errorData.password || null);
+            } else {
+                Alert.alert('Login Error', 'An error occurred during login. Please try again.');
+            }
+        }
+        finally {
+            setLoading(false)
+        }
 
     };
 
