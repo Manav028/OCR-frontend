@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AuthNavigator from './AuthNavigator';
 import BottomBarNavigator from './BottomBarNavigator';
 import { NavigationContainer } from '@react-navigation/native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 
 const Stack = createNativeStackNavigator();
@@ -17,6 +18,7 @@ const AppNavigator = () => {
     const checkLoginStatus = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
+        console.log(token)
         setIsAuthenticated(true);
       } catch (error) {
         console.error('Error checking login status:', error);
@@ -43,7 +45,8 @@ const AppNavigator = () => {
   }
 
   return (
-    <NavigationContainer>
+    <GestureHandlerRootView style={{flex:1}}>
+      <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
           <Stack.Screen name="Main" component={BottomBarNavigator}/>
@@ -52,6 +55,7 @@ const AppNavigator = () => {
         )}
       </Stack.Navigator>
     </NavigationContainer>
+    </GestureHandlerRootView>
   );
 };
 
