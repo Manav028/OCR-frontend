@@ -3,10 +3,10 @@ import { StyleSheet, View, ActivityIndicator, Text } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AuthNavigator from './AuthNavigator';
-import BottomBarNavigator from './BottomBarNavigator';
+import {BottomBarNavigator} from './BottomBarNavigator';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-
+import OCRBottomBarNavigator from './OCRBottomBarNavigator';
 
 const Stack = createNativeStackNavigator();
 
@@ -49,7 +49,10 @@ const AppNavigator = () => {
       <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
+          <>
           <Stack.Screen name="Main" component={BottomBarNavigator}/>
+          <Stack.Screen name="OCR" component={OCRBottomBarNavigator}/>
+          </>
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator}/>
         )}

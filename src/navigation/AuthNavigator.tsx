@@ -4,15 +4,16 @@ import RegisterScreen from '../screens/RegisterScreen';
 import TutorialScreen from '../screens/TutorialScreen';
 import VerifyOTPScreen from '../screens/VerfiyOTPScreen'
 import LoginScreen from '../screens/LoginScreen';
-import BottomBarNavigator from './BottomBarNavigator';
+import { BottomBarNavigator } from './BottomBarNavigator';
 
 export type AuthStackParamList = {
     Login: undefined;
     Register: undefined;
-    TutorialScreen: undefined
-    VerifyOTPScreen: { "email": String }
-    Main: undefined
+    TutorialScreen: undefined;
+    VerifyOTPScreen: { email: string };
+    Main: undefined;
 };
+
 
 const Stack = createStackNavigator<AuthStackParamList>();
 

@@ -6,14 +6,28 @@ import CustomStatusBar from '../components/CustomStatusBar';
 import { Colors, fontfamily, FontSizes } from '../styles/Globalcss';
 import MainButton from '../components/MainButton';
 import { launchCamera } from 'react-native-image-picker';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AuthStackParamList } from '../navigation/AuthNavigator';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import {BottomTabParamList} from '../navigation/BottomBarNavigator'
+import { useNavigation } from '@react-navigation/native';
+import CustomAlert from '../components/CustomAlert';
 
-const HomeScreen = () => {
-  const [photos, setPhotos] = useState<string[]>([]); 
-  const userName = "manav";
 
-  // useEffect(() => {
-  //   console.log('Updated Photos:', photos); 
-  // }, [photos]);
+type HomeScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList,'Main'> & BottomTabNavigationProp<BottomTabParamList,'Home'>
+
+
+type HomeScreenProps = {
+  navigation: HomeScreenNavigationProp;
+};
+
+const userName = "Manav"
+
+const HomeScreen = ( {navigation}: HomeScreenProps) => {
+  
+  const [photos, setPhotos] = useState<string[]>([]);   
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [updatedPhotos, setUpdatedPhotos] = useState<string[]>([]);
 
   const requestCameraPermission = async () => {
     try {
@@ -25,7 +39,7 @@ const HomeScreen = () => {
           buttonNeutral: 'Ask Me Later',
           buttonNegative: 'Cancel',
           buttonPositive: 'OK',
-        },
+        }
       );
       return granted === PermissionsAndroid.RESULTS.GRANTED;
     } catch (err) {
@@ -37,38 +51,27 @@ const HomeScreen = () => {
   const handleTakePhotos = async () => {
     const hasPermission = await requestCameraPermission();
     if (hasPermission) {
-      const takePhoto = () => {
-        launchCamera(
-          {
-            mediaType: 'photo',
-            saveToPhotos: true,
-          },
-          (response) => {
-            if (response.didCancel) {
-              console.log('User canceled image capture');
-            } else if (response.errorMessage) {
-              console.error('Error: ', response.errorMessage);
-            } else if (response.assets && response.assets[0]?.uri) {
-              const newPhoto = response.assets[0].uri;
-              console.log('Captured Photo URI:', newPhoto);
-              setPhotos((prevPhotos) => [...prevPhotos, newPhoto]);
-              Alert.alert(
-                'Photo Captured',
-                'Do you want to take another photo?',
-                [
-                  { text: 'Yes', onPress: takePhoto },
-                  { text: 'No', style: 'cancel' },
-                ]
-              );
-            }
+      launchCamera(
+        { mediaType: 'photo', saveToPhotos: true },
+        (response) => {
+          if (response.didCancel) {
+            console.log('User canceled image capture');
+          } else if (response.errorMessage) {
+            console.error('Error: ', response.errorMessage);
+          } else if (response.assets && response.assets[0]?.uri) {
+            const newPhoto = response.assets[0].uri;
+            const updatedPhotos = [...photos, newPhoto];
+            setPhotos(updatedPhotos);
+            setUpdatedPhotos(updatedPhotos); 
+            setAlertVisible(true); 
           }
-        );
-      };
-      takePhoto();
+        }
+      );
     } else {
       Alert.alert('Permission Denied', 'Camera permission is required to use this feature.');
     }
   };
+  
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: 10, paddingBottom : 100 }}>
@@ -138,6 +141,18 @@ const HomeScreen = () => {
           </View>
         )}
       </ScrollView>
+      <CustomAlert
+        visible={alertVisible}
+        onYes={() => {
+          setAlertVisible(false);
+          handleTakePhotos();
+        }}
+        onNo={() => {
+          setAlertVisible(false);
+          navigation.navigate('OCR', { screen: 'OCRMain', params: { photos: updatedPhotos } });
+        }}
+        onCancel={() => setAlertVisible(false)}
+      />
     </SafeAreaView>
   );
 };

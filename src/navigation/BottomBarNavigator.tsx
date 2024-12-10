@@ -5,10 +5,18 @@ import ProfileScreen from '../screens/ProfileScreen';
 import Icon from 'react-native-vector-icons/Ionicons'; 
 import TabBar from '../components/TabBar'
 import StorageScreen from '../screens/StorageScreen';
+import OcrMainScreen from '../screens/OcrMainScreen';
+
+export type BottomTabParamList = {
+  Home: undefined; 
+  Profile: undefined;
+  Storage: undefined;
+};
+
 
 const TabNav = createBottomTabNavigator();
 
-const BottomBarNavigator = () => {
+export const BottomBarNavigator = () => {
   return (
     <TabNav.Navigator
       tabBar={(props)=><TabBar {...props} />}
@@ -33,5 +41,3 @@ const BottomBarNavigator = () => {
     </TabNav.Navigator>
   );
 };
-
-export default BottomBarNavigator;
