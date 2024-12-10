@@ -9,23 +9,20 @@ import { launchCamera } from 'react-native-image-picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import {BottomTabParamList} from '../navigation/BottomBarNavigator'
-import { useNavigation } from '@react-navigation/native';
+import { BottomTabParamList } from '../navigation/BottomBarNavigator';
+import { useFocusEffect } from '@react-navigation/native';
 import CustomAlert from '../components/CustomAlert';
 
-
-type HomeScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList,'Main'> & BottomTabNavigationProp<BottomTabParamList,'Home'>
-
+type HomeScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Main'> & BottomTabNavigationProp<BottomTabParamList, 'Home'>;
 
 type HomeScreenProps = {
   navigation: HomeScreenNavigationProp;
 };
 
-const userName = "Manav"
+const userName = "Manav";
 
-const HomeScreen = ( {navigation}: HomeScreenProps) => {
-  
-  const [photos, setPhotos] = useState<string[]>([]);   
+const HomeScreen = ({ navigation }: HomeScreenProps) => {
+  const [photos, setPhotos] = useState<string[]>([]);
   const [alertVisible, setAlertVisible] = useState(false);
   const [updatedPhotos, setUpdatedPhotos] = useState<string[]>([]);
 
@@ -62,8 +59,8 @@ const HomeScreen = ( {navigation}: HomeScreenProps) => {
             const newPhoto = response.assets[0].uri;
             const updatedPhotos = [...photos, newPhoto];
             setPhotos(updatedPhotos);
-            setUpdatedPhotos(updatedPhotos); 
-            setAlertVisible(true); 
+            setUpdatedPhotos(updatedPhotos);
+            setAlertVisible(true);
           }
         }
       );
@@ -71,10 +68,16 @@ const HomeScreen = ( {navigation}: HomeScreenProps) => {
       Alert.alert('Permission Denied', 'Camera permission is required to use this feature.');
     }
   };
-  
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setPhotos([]);
+      setUpdatedPhotos([]);
+    }, [])
+  );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: 10, paddingBottom : 100 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: 10, paddingBottom: 100 }}>
       <CustomStatusBar backgroundColor={Colors.primarybackground} translucent={false} />
       <ScrollView style={{ flex: 1, paddingHorizontal: 20 }} showsVerticalScrollIndicator={false}>
         <View style={styles.welcomeContainer}>

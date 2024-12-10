@@ -13,7 +13,7 @@ const CustomAlert: React.FC<CustomAlertProps> = ({ visible, onCancel, onYes, onN
     <Modal
       transparent={true}
       visible={visible}
-      animationType="slide" // Slide animation for bottom-to-top appearance
+      animationType="slide" 
     >
       <View style={styles.overlay}>
         <View style={styles.alertContainer}>
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end', // Position at the bottom
+    justifyContent: 'flex-end', 
   },
   alertContainer: {
     width: '100%',

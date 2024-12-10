@@ -121,12 +121,12 @@ const styles = StyleSheet.create({
   },
   tabButton: {
     flex: 1,
-    flexDirection: 'column', 
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
   },
   label: {
     fontSize: FontSizes.small,
-    marginTop: 4, 
+    marginTop: 4,
   },
 });

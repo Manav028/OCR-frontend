@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.0.0",
+    "@react-native-clipboard/clipboard": "^1.15.0",
     "@react-native-ml-kit/text-recognition": "^1.5.2",
     "@react-native/gradle-plugin": "^0.76.4",
     "@react-navigation/bottom-tabs": "^6.5.9",

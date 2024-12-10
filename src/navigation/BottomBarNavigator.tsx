@@ -5,7 +5,6 @@ import ProfileScreen from '../screens/ProfileScreen';
 import Icon from 'react-native-vector-icons/Ionicons'; 
 import TabBar from '../components/TabBar'
 import StorageScreen from '../screens/StorageScreen';
-import OcrMainScreen from '../screens/OcrMainScreen';
 
 export type BottomTabParamList = {
   Home: undefined; 
