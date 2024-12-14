@@ -1,19 +1,48 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Alert, TextInput, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  TextInput,
+  TouchableOpacity,
+  Share,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+} from 'react-native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { OCRStackParamList } from '../navigation/OCRBottomBarNavigator';
 import { extractTextFromImage } from '../services/ocrService';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { Colors } from '../styles/Globalcss';
+import { Colors, fontfamily } from '../styles/Globalcss';
 import CustomStatusBar from '../components/CustomStatusBar';
-import Icon from 'react-native-vector-icons/Ionicons'; // Add Ionicons for icons
+import Icon from 'react-native-vector-icons/Ionicons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView } from 'react-native-gesture-handler';
 
 type OcrMainScreenProps = BottomTabScreenProps<OCRStackParamList, 'OCRMain'>;
 
 const OCRMainScreen: React.FC<OcrMainScreenProps> = ({ route }) => {
   const { photos } = route.params || {};
   const [extractedText, setExtractedText] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () =>
+      setKeyboardVisible(true)
+    );
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardVisible(false)
+    );
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     const fetchExtractedText = async () => {
@@ -23,7 +52,6 @@ const OCRMainScreen: React.FC<OcrMainScreenProps> = ({ route }) => {
       }
 
       try {
-        setLoading(true);
         let combinedText = '';
         for (const photo of photos) {
           const text = await extractTextFromImage(photo);
@@ -35,8 +63,6 @@ const OCRMainScreen: React.FC<OcrMainScreenProps> = ({ route }) => {
       } catch (error) {
         console.error('Error during text extraction:', error);
         Alert.alert('Error', 'An error occurred while extracting text.');
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -46,100 +72,130 @@ const OCRMainScreen: React.FC<OcrMainScreenProps> = ({ route }) => {
   const copyToClipboard = () => {
     if (extractedText) {
       Clipboard.setString(extractedText);
-      Alert.alert('Copied', 'Extracted text has been copied to clipboard.');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } else {
+      Alert.alert('Nothing to Copy', 'No text available to copy.');
     }
   };
 
-  const shareText = () => {
+  const shareText = async () => {
     if (extractedText) {
-      Alert.alert('Share', 'This is where you can integrate a sharing feature!');
+      try {
+        await Share.share({
+          message: extractedText,
+          title: 'Extracted Text',
+        });
+        setShared(true);
+        setTimeout(() => setShared(false), 3000);
+      } catch (error) {
+        console.error('Error during sharing:', error);
+        Alert.alert('Error', 'Unable to share text at this moment.');
+      }
+    } else {
+      Alert.alert('Nothing to Share', 'No text available to share.');
     }
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeAreaContainer}>
       <CustomStatusBar backgroundColor={Colors.fourthbackgroound} />
-      {loading ? (
-        <ActivityIndicator size="large" color="#007bff" />
-      ) : (
-        <>
-          <ScrollView style={styles.textContainer}>
-            <View style={styles.textContainerinner}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContainer,
+            { paddingBottom: keyboardVisible ? 0 : 70 }, // Ensure consistent gap when keyboard is hidden
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.content}>
+            <View style={styles.header}>
               <Text style={styles.heading}>Extracted Text</Text>
               <View style={styles.iconContainer}>
                 <TouchableOpacity onPress={copyToClipboard}>
-                  <Icon name="copy-outline" size={24} color={Colors.primaryborder} style={styles.icon} />
+                  <Icon
+                    name={copied ? 'checkmark-done-outline' : 'copy-outline'}
+                    size={24}
+                    color={Colors.primaryborder}
+                    style={styles.icon}
+                  />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={shareText}>
-                  <Icon name="share-social-outline" size={24} color={Colors.primaryborder} style={styles.icon} />
+                  <Icon
+                    name={shared ? 'checkmark-done-outline' : 'share-social-outline'}
+                    size={24}
+                    color={Colors.primaryborder}
+                    style={styles.icon}
+                  />
                 </TouchableOpacity>
               </View>
             </View>
-
             <TextInput
-              style={styles.extractedTextInput}
+              style={[
+                styles.extractedTextInput,
+                { marginBottom: keyboardVisible ? 10 : 0 },
+              ]}
               value={extractedText || ''}
               onChangeText={(text) => setExtractedText(text)}
-              multiline={true}
+              multiline
               textAlignVertical="top"
             />
-          </ScrollView>
-        </>
-      )}
-    </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 export default OCRMainScreen;
 
 const styles = StyleSheet.create({
+  safeAreaContainer: {
+    flex: 1,
+    backgroundColor: Colors.fourthbackgroound,
+  },
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Colors.fourthbackgroound,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 20,
+  },
+  content: {
+    flex: 1,
+    padding: 5,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.fourthbackgroound,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    borderWidth: 2,
+    padding: 10,
   },
   heading: {
     fontSize: 20,
-    fontWeight: 'bold',
-    textAlignVertical: 'center', 
-    flex: 1, 
-  },
-  textContainer: {
+    fontFamily: fontfamily.SpaceMonoBold,
     flex: 1,
-    padding: 15,
-    backgroundColor: Colors.fourthbackgroound,
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-    display: 'flex',
-  },
-  extractedTextInput: {
-    fontSize: 16,
-    color: '#333',
-    backgroundColor: Colors.fourthbackgroound,
-    padding: 10,
-    borderColor: Colors.primaryborder,
-    borderWidth: 2,
-    minHeight: 200,
-    flex: 1,
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-    textAlignVertical: 'top',
-  },
-  textContainerinner: {
-    borderWidth: 2,
-    borderColor: Colors.primaryborder,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    width: '100%',
-    paddingHorizontal: 10,
-    flexDirection: 'row', 
-    justifyContent: 'space-between',
-    alignItems: 'center', 
-    height: 50,
   },
   iconContainer: {
     flexDirection: 'row',
   },
   icon: {
     marginLeft: 15,
+  },
+  extractedTextInput: {
+    backgroundColor: Colors.fourthbackgroound,
+    padding: 10,
+    borderWidth: 2,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    flex: 1,
   },
 });

@@ -19,7 +19,11 @@ export const BottomBarNavigator = () => {
   return (
     <TabNav.Navigator
       tabBar={(props)=><TabBar {...props} />}
-      screenOptions={{headerShown:false}}
+      screenOptions={{
+        headerShown:false,
+        
+      }}
+      
     >
 
       <TabNav.Screen 
