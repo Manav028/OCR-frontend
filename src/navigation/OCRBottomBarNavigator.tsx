@@ -2,14 +2,15 @@ import React from 'react';
 import { createBottomTabNavigator, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
 import OcrTranslationScreen from '../screens/OcrTranslationScreen';
-import { Provider } from 'react-redux';
-import { store } from '../store/store';
+
 import { Keyboard } from 'react-native';
 import OCRMainScreen from '../screens/OcrMainScreen';
+import OcrSummaryScreen from '../screens/OcrSummaryScreen';
 
 export type OCRStackParamList = {
   OCRMain: { photos: string[] };
   Translation: undefined;
+  Summary : undefined;
 };
 
 const Tab = createBottomTabNavigator<OCRStackParamList>();
@@ -32,12 +33,11 @@ const OCRBottomBarNavigator: React.FC = () => {
   }, []);
 
   return (
-    <Provider store={store}>
       <Tab.Navigator
         screenOptions={({ route }: BottomTabScreenProps<OCRStackParamList>) => ({
           headerShown: false,
           tabBarStyle: {
-            display: isKeyboardVisible ? 'none' : 'flex', // Hide the tab bar when the keyboard is visible
+            display: isKeyboardVisible ? 'none' : 'flex', 
             position: 'absolute',
             backgroundColor: '#fff',
           },
@@ -47,6 +47,8 @@ const OCRBottomBarNavigator: React.FC = () => {
               iconName = 'document-text-outline';
             } else if (route.name === 'Translation') {
               iconName = 'language-outline';
+            } else if (route.name ===  'Summary'){
+              iconName = 'reader-outline'
             }
             return <Icon name={iconName} size={size} color={color} />;
           },
@@ -68,8 +70,14 @@ const OCRBottomBarNavigator: React.FC = () => {
             title: 'Translate',
           }}
         />
+        <Tab.Screen
+          name="Summary"
+          component={OcrSummaryScreen}
+          options={{
+            title: 'Summary',
+          }}
+        />
       </Tab.Navigator>
-    </Provider>
   );
 };
 

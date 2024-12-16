@@ -27,43 +27,35 @@ const OcrTranslationScreen = () => {
   const screenHeight = Dimensions.get('window').height;
   const maxHeight = screenHeight * 0.25;
 
-  console.log(API_URL)
-
   const [editableText, setEditableText] = useState<string>(OCRtextFromState || ''); 
   const [translatedText, setTranslatedText] = useState<string | null>(null);
-  const [targetLanguage, setTargetLanguage] = useState<string | null>(null);
+  const [summarytext, setsummarytext] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    setEditableText(OCRtextFromState || '');
-  }, [OCRtextFromState]);
+  console.log(API_URL)
 
-  const handleTranslate = async () => {
+  const handleSummarize = async () => {
     if (!editableText.trim()) {
-      Alert.alert('Error', 'No text available to translate.');
+      Alert.alert('Error', 'No text available to summarize.');
       return;
     }
-
-    if (!targetLanguage) {
-      Alert.alert('Error', 'Please select a language to translate.');
-      return;
-    }
-
+  
     try {
       setLoading(true);
-
+  
       const response = await axios.post(
-        `${API_URL}/api/translate`,
-        { text: editableText, targetLanguage },
+        `${API_URL}/api/summary`,
+        { text: editableText },
         {
           headers: { 'Content-Type': 'application/json' },
         }
       );
-
-      setTranslatedText(response.data.translated);
+  
+      const summary = response.data.summary;
+      setsummarytext(summary);
     } catch (error: any) {
-      console.error('Translation Error:', error.message);
-      Alert.alert('Error', 'Failed to translate text.');
+      console.error('Summarization Error:', error.message);
+      Alert.alert('Error', 'Failed to summarize text.');
     } finally {
       setLoading(false);
     }
@@ -71,8 +63,7 @@ const OcrTranslationScreen = () => {
 
   const handleClearText = () => {
     setEditableText(''); 
-    setTranslatedText('');
-    setTargetLanguage(null);
+    setsummarytext('');
   };
 
   return (
@@ -86,7 +77,7 @@ const OcrTranslationScreen = () => {
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.screenTitle}>OCR Translation</Text>
+          <Text style={styles.screenTitle}>OCR Summary</Text>
 
           <View style={styles.textSection}>
             <Text style={styles.sectionTitle}>Extracted Text</Text>
@@ -98,39 +89,19 @@ const OcrTranslationScreen = () => {
             />
           </View>
 
-          <View style={styles.pickerSection}>
-            <Text style={styles.sectionTitle}>Translate To</Text>
-            <View style={styles.pickerContainer}>
-              <RNPickerSelect
-                onValueChange={(value) => setTargetLanguage(value)}
-                items={[
-                  { label: 'Spanish', value: 'es' },
-                  { label: 'French', value: 'fr' },
-                  { label: 'German', value: 'de' },
-                  { label: 'Chinese', value: 'zh' },
-                  { label: 'Hindi', value: 'hi' },
-                ]}
-                value={targetLanguage}
-                placeholder={{ label: 'Please select a language...', value: null }}
-                style={pickerStyles}
-                useNativeAndroidPickerStyle={false}
-              />
-            </View>
-          </View>
-
           <View style={styles.textSection}>
-            <Text style={styles.sectionTitle}>Translated Text</Text>
+            <Text style={styles.sectionTitle}>Summary Text</Text>
             <TextInput
               style={[styles.textBox, translatedText ? styles.textBoxFilled : styles.textBoxEmpty, {maxHeight : maxHeight}]}
-              value={translatedText || ''}
-              onChangeText={setTranslatedText}
+              value={summarytext || ''}
+              onChangeText={setsummarytext}
               multiline
             />
           </View>
 
           <View style={styles.buttonSection}>
-            <MainButton title="Translate" Style={{ width: '48%' }} onPress={handleTranslate} />
-            <MainButton title="Clear" Style={{ width: '48%' }} onPress={handleClearText} />
+            <MainButton title="Summary" Style={{ width: '48%' }} onPress={handleSummarize}  />
+            <MainButton title="Clear" Style={{ width: '48%' }} onPress={handleClearText}  />
           </View>
         </ScrollView>
 

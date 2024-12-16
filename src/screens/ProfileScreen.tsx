@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import CustomStatusBar from '../components/CustomStatusBar'
 import { Colors } from '../styles/Globalcss'
@@ -15,6 +15,9 @@ const ProfileScreen = () => {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <View>
           <Text>ProfileScreen</Text>
+          <TouchableOpacity>
+            
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

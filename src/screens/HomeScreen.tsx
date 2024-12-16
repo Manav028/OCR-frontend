@@ -5,13 +5,13 @@ import { ScrollView } from 'react-native-gesture-handler';
 import CustomStatusBar from '../components/CustomStatusBar';
 import { Colors, fontfamily, FontSizes } from '../styles/Globalcss';
 import MainButton from '../components/MainButton';
-import { launchCamera } from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { BottomTabParamList } from '../navigation/BottomBarNavigator';
 import { useFocusEffect } from '@react-navigation/native';
-import CustomAlert from '../components/CustomAlert';
+import ImageCropPicker from 'react-native-image-crop-picker';
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Main'> & BottomTabNavigationProp<BottomTabParamList, 'Home'>;
 
@@ -50,23 +50,55 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     if (hasPermission) {
       launchCamera(
         { mediaType: 'photo', saveToPhotos: true },
-        (response) => {
+        async (response) => {
           if (response.didCancel) {
             console.log('User canceled image capture');
           } else if (response.errorMessage) {
             console.error('Error: ', response.errorMessage);
           } else if (response.assets && response.assets[0]?.uri) {
-            const newPhoto = response.assets[0].uri;
-            const updatedPhotos = [...photos, newPhoto];
-            setPhotos(updatedPhotos);
-            setUpdatedPhotos(updatedPhotos);
-            setAlertVisible(true);
+            try {
+
+              const photoUri = response.assets[0].uri.startsWith('file://')
+                ? response.assets[0].uri
+                : `file://${response.assets[0].uri}`;
+
+              console.log('Photo URI:', photoUri);
+
+              const croppedImage = await ImageCropPicker.openCropper({
+                mediaType: 'photo',
+                path: photoUri,
+                width: 300,
+                height: 400,
+                cropping: true,
+              });
+
+              setPhotos([croppedImage.path]);
+              setUpdatedPhotos([croppedImage.path]);
+              navigation.navigate('OCR', { screen: 'OCRMain', params: { photos: [croppedImage.path] } });
+            } catch (err) {
+              console.error('Cropper Error:', err);
+            }
           }
         }
       );
     } else {
       Alert.alert('Permission Denied', 'Camera permission is required to use this feature.');
     }
+  };
+
+
+  const handleSelectFromLibrary = async () => {
+    launchImageLibrary({ mediaType: 'photo', selectionLimit: 1 }, (response) => {
+      if (response.didCancel) {
+        console.log('User canceled image selection');
+      } else if (response.errorMessage) {
+        console.error('Error: ', response.errorMessage);
+      } else if (response.assets && response.assets.length > 0) {
+        const selectedPhotos = response.assets.map((asset) => asset.uri || '');
+        setPhotos(selectedPhotos);
+        navigation.navigate('OCR', { screen: 'OCRMain', params: { photos: selectedPhotos } });
+      }
+    });
   };
 
   useFocusEffect(
@@ -82,7 +114,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
       <ScrollView style={{ flex: 1, paddingHorizontal: 20 }} showsVerticalScrollIndicator={false}>
         <View style={styles.welcomeContainer}>
           <Text style={styles.helloText}>HELLO</Text>
-          <Text style={styles.userNameText}>{userName}</Text>
+          <Text style={styles.userNameText}>{userName},</Text>
         </View>
 
         <View style={styles.imageContainer}>
@@ -110,21 +142,20 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
         <View style={styles.FuncContainer}>
           <View style={styles.columnContainer}>
-            <View style={styles.FunContainer1} onTouchEnd={handleTakePhotos}>
-              <Image source={require('../../assets/images/Text-OCR1.png')} style={styles.funImage} />
-              <View style={styles.buttonWrapper}>
-                <MainButton
-                  title="Capture Photos"
-                  Style={{ borderBottomLeftRadius: 15, borderBottomRightRadius: 15 }}
-                />
-              </View>
+            <View style={styles.FunContainer1}>
+              <Text style={styles.boxText}>Camera</Text>
             </View>
-            <View style={styles.FunContainer3}>
-              <Text style={styles.boxText}>Manav3</Text>
+            <View style={styles.FunContainer1}>
+              <Text style={styles.boxText}>Gallery</Text>
             </View>
           </View>
-          <View style={styles.FunContainer2}>
-            <Text style={styles.boxText}>Manav2</Text>
+          <View style={styles.columnContainer}>
+            <View style={styles.FunContainer1}>
+              <Text style={styles.boxText}>PDF</Text>
+            </View>
+            <View style={styles.FunContainer1}>
+              <Text style={styles.boxText}>Human Handwritting</Text>
+            </View>
           </View>
         </View>
 
@@ -144,18 +175,6 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           </View>
         )}
       </ScrollView>
-      <CustomAlert
-        visible={alertVisible}
-        onYes={() => {
-          setAlertVisible(false);
-          handleTakePhotos();
-        }}
-        onNo={() => {
-          setAlertVisible(false);
-          navigation.navigate('OCR', { screen: 'OCRMain', params: { photos: updatedPhotos } });
-        }}
-        onCancel={() => setAlertVisible(false)}
-      />
     </SafeAreaView>
   );
 };
@@ -180,7 +199,7 @@ const styles = StyleSheet.create({
   },
   userNameText: {
     fontSize: FontSizes.large,
-    fontFamily: fontfamily.SpaceMonoRegular,
+    fontFamily: fontfamily.SpaceMonoBold,
     color: Colors.secondarytext,
   },
   imageContainer: {
@@ -216,7 +235,7 @@ const styles = StyleSheet.create({
   columnContainer: {
     flex: 1,
     gap: 7,
-    flexDirection: 'column',
+    flexDirection: 'column'
   },
   FunContainer1: {
     flex: 1,
@@ -224,21 +243,8 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.secondarytext,
     borderRadius: 15,
     position: 'relative',
-    padding: 10,
-  },
-  FunContainer3: {
-    flex: 1,
-    backgroundColor: Colors.fifthbackground,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 15,
-  },
-  FunContainer2: {
-    flex: 1,
-    backgroundColor: Colors.fifthbackground,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 15,
   },
   boxText: {
     fontSize: FontSizes.medium,
@@ -246,16 +252,11 @@ const styles = StyleSheet.create({
     color: Colors.primartext,
   },
   funImage: {
-    width: '100%',
-    height: '60%',
-    resizeMode: 'cover',
+    width: '60%',
+    height: '50%',
+    resizeMode: 'contain',
     borderRadius: 15,
-  },
-  buttonWrapper: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    marginBottom: 24,
   },
   photoContainer: {
     marginTop: 20,

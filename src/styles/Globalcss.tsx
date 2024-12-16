@@ -24,6 +24,7 @@ const Colors = {
     thirdbackground : 'black',
     fourthbackgroound : '#fef9c3',
     fifthbackground : '#EDEEF0',
+    sixthbackground : 'gray',
     primartext : '#333',
     secondarytext : '#666',
     thirdtext : 'white',

@@ -12,16 +12,11 @@ const CustomStatusBar: React.FC<CustomStatusBar> = ({backgroundColor, barStyle =
     return (
         <StatusBar
             backgroundColor={backgroundColor}
-            barStyle={barStyle}
+            barStyle={"dark-content"}
             translucent={translucent}
+        
         />
     )
 }
 
 export default CustomStatusBar
-
-const styles = StyleSheet.create({
-    statusBar: {
-        height: StatusBar.currentHeight, 
-      },
-})

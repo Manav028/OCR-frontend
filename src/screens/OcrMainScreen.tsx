@@ -20,6 +20,8 @@ import CustomStatusBar from '../components/CustomStatusBar';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useDispatch } from 'react-redux';
+import { SetOCRText } from '../store/ocrtext/OcrTextSlice';
 
 type OcrMainScreenProps = BottomTabScreenProps<OCRStackParamList, 'OCRMain'>;
 
@@ -29,6 +31,7 @@ const OCRMainScreen: React.FC<OcrMainScreenProps> = ({ route }) => {
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const dispatch = useDispatch(); 
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () =>
@@ -48,6 +51,7 @@ const OCRMainScreen: React.FC<OcrMainScreenProps> = ({ route }) => {
     const fetchExtractedText = async () => {
       if (!photos || photos.length === 0) {
         setExtractedText('No images provided for text extraction.');
+        dispatch(SetOCRText('No images provided for text extraction.'));
         return;
       }
 
@@ -59,7 +63,9 @@ const OCRMainScreen: React.FC<OcrMainScreenProps> = ({ route }) => {
             combinedText += text + '\n\n';
           }
         }
-        setExtractedText(combinedText || 'No text could be extracted from the images.');
+        const finalText = combinedText || 'No text could be extracted from the images.';
+        setExtractedText(finalText);
+        dispatch(SetOCRText(finalText)); 
       } catch (error) {
         console.error('Error during text extraction:', error);
         Alert.alert('Error', 'An error occurred while extracting text.');
@@ -107,7 +113,7 @@ const OCRMainScreen: React.FC<OcrMainScreenProps> = ({ route }) => {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContainer,
-            { paddingBottom: keyboardVisible ? 0 : 70 }, // Ensure consistent gap when keyboard is hidden
+            { paddingBottom: keyboardVisible ? 0 : 70 },
           ]}
           keyboardShouldPersistTaps="handled"
         >
@@ -134,12 +140,12 @@ const OCRMainScreen: React.FC<OcrMainScreenProps> = ({ route }) => {
               </View>
             </View>
             <TextInput
-              style={[
-                styles.extractedTextInput,
-                { marginBottom: keyboardVisible ? 10 : 0 },
-              ]}
+              style={[styles.extractedTextInput, { marginBottom: keyboardVisible ? 10 : 0 }]}
               value={extractedText || ''}
-              onChangeText={(text) => setExtractedText(text)}
+              onChangeText={(text) => {
+                setExtractedText(text);
+                dispatch(SetOCRText(text));
+              }}
               multiline
               textAlignVertical="top"
             />
