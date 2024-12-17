@@ -11,27 +11,28 @@ import {
   Platform,
   Keyboard,
 } from 'react-native';
-import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { OCRStackParamList } from '../navigation/OCRBottomBarNavigator';
-import { extractTextFromImage } from '../services/ocrService';
+import { useSelector, useDispatch } from 'react-redux';
+import { SetOCRData } from '../store/ocrtext/OcrTextSlice';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { Colors, fontfamily } from '../styles/Globalcss';
 import CustomStatusBar from '../components/CustomStatusBar';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
-import { useDispatch } from 'react-redux';
-import { SetOCRText } from '../store/ocrtext/OcrTextSlice';
 
-type OcrMainScreenProps = BottomTabScreenProps<OCRStackParamList, 'OCRMain'>;
+const OCRMainScreen: React.FC = () => {
+  const dispatch = useDispatch();
 
-const OCRMainScreen: React.FC<OcrMainScreenProps> = ({ route }) => {
-  const { photos } = route.params || {};
-  const [extractedText, setExtractedText] = useState<string | null>(null);
+  const { imagePath, extractedText } = useSelector((state : any) => state.ocr);
+
+  const [localText, setLocalText] = useState<string>(extractedText || '');
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const dispatch = useDispatch(); 
+
+  useEffect(() => {
+    setLocalText(extractedText || '');
+  }, [extractedText]);
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () =>
@@ -47,37 +48,9 @@ const OCRMainScreen: React.FC<OcrMainScreenProps> = ({ route }) => {
     };
   }, []);
 
-  useEffect(() => {
-    const fetchExtractedText = async () => {
-      if (!photos || photos.length === 0) {
-        setExtractedText('No images provided for text extraction.');
-        dispatch(SetOCRText('No images provided for text extraction.'));
-        return;
-      }
-
-      try {
-        let combinedText = '';
-        for (const photo of photos) {
-          const text = await extractTextFromImage(photo);
-          if (text) {
-            combinedText += text + '\n\n';
-          }
-        }
-        const finalText = combinedText || 'No text could be extracted from the images.';
-        setExtractedText(finalText);
-        dispatch(SetOCRText(finalText)); 
-      } catch (error) {
-        console.error('Error during text extraction:', error);
-        Alert.alert('Error', 'An error occurred while extracting text.');
-      }
-    };
-
-    fetchExtractedText();
-  }, [photos]);
-
   const copyToClipboard = () => {
-    if (extractedText) {
-      Clipboard.setString(extractedText);
+    if (localText) {
+      Clipboard.setString(localText);
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
     } else {
@@ -86,10 +59,10 @@ const OCRMainScreen: React.FC<OcrMainScreenProps> = ({ route }) => {
   };
 
   const shareText = async () => {
-    if (extractedText) {
+    if (localText) {
       try {
         await Share.share({
-          message: extractedText,
+          message: localText,
           title: 'Extracted Text',
         });
         setShared(true);
@@ -141,10 +114,10 @@ const OCRMainScreen: React.FC<OcrMainScreenProps> = ({ route }) => {
             </View>
             <TextInput
               style={[styles.extractedTextInput, { marginBottom: keyboardVisible ? 10 : 0 }]}
-              value={extractedText || ''}
+              value={localText}
               onChangeText={(text) => {
-                setExtractedText(text);
-                dispatch(SetOCRText(text));
+                setLocalText(text);
+                // dispatch(SetOCRData({ imagePath, extractedText: text }));
               }}
               multiline
               textAlignVertical="top"
@@ -203,5 +176,10 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
     flex: 1,
+  },
+  imagePathText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: Colors.primaryborder,
   },
 });

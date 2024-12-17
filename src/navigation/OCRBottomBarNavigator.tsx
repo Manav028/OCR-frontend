@@ -2,13 +2,12 @@ import React from 'react';
 import { createBottomTabNavigator, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
 import OcrTranslationScreen from '../screens/OcrTranslationScreen';
-
 import { Keyboard } from 'react-native';
 import OCRMainScreen from '../screens/OcrMainScreen';
 import OcrSummaryScreen from '../screens/OcrSummaryScreen';
 
 export type OCRStackParamList = {
-  OCRMain: { photos: string[] };
+  OCRMain: undefined;
   Translation: undefined;
   Summary : undefined;
 };

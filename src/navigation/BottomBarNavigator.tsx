@@ -19,7 +19,6 @@ const TabNav = createBottomTabNavigator();
 
 export const BottomBarNavigator = () => {
   return (
-    <Provider store={store}>
       <TabNav.Navigator
         tabBar={(props) => <TabBar {...props} />}
         screenOptions={{
@@ -41,6 +40,5 @@ export const BottomBarNavigator = () => {
           options={{ title: 'Storage' }}
         />
       </TabNav.Navigator>
-    </Provider>
   );
 };

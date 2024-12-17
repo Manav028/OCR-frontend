@@ -1,16 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  ActivityIndicator,
-  Dimensions
-} from 'react-native';
+import { StyleSheet,Text,View,TextInput,Alert,KeyboardAvoidingView,Platform,ScrollView,ActivityIndicator,Dimensions} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
@@ -22,21 +11,19 @@ import MainButton from '../components/MainButton';
 
 const OcrTranslationScreen = () => {
 
-  const OCRtextFromState = useSelector((state: any) => state.extractedText);
+  const { imagePath, extractedText } = useSelector((state : any) => state.ocr);
 
   const screenHeight = Dimensions.get('window').height;
   const maxHeight = screenHeight * 0.25;
 
-  console.log(API_URL)
-
-  const [editableText, setEditableText] = useState<string>(OCRtextFromState || ''); 
+  const [editableText, setEditableText] = useState<string>(extractedText || ''); 
   const [translatedText, setTranslatedText] = useState<string | null>(null);
   const [targetLanguage, setTargetLanguage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setEditableText(OCRtextFromState || '');
-  }, [OCRtextFromState]);
+    setEditableText(extractedText || '');
+  }, [extractedText]);
 
   const handleTranslate = async () => {
     if (!editableText.trim()) {
@@ -51,7 +38,6 @@ const OcrTranslationScreen = () => {
 
     try {
       setLoading(true);
-
       const response = await axios.post(
         `${API_URL}/api/translate`,
         { text: editableText, targetLanguage },

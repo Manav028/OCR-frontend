@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
   Dimensions
 } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { API_URL } from '@env';
@@ -22,17 +21,15 @@ import MainButton from '../components/MainButton';
 
 const OcrTranslationScreen = () => {
 
-  const OCRtextFromState = useSelector((state: any) => state.extractedText);
+  const { imagePath, extractedText } = useSelector((state : any) => state.ocr);
 
   const screenHeight = Dimensions.get('window').height;
   const maxHeight = screenHeight * 0.25;
 
-  const [editableText, setEditableText] = useState<string>(OCRtextFromState || ''); 
+  const [editableText, setEditableText] = useState<string>(extractedText || ''); 
   const [translatedText, setTranslatedText] = useState<string | null>(null);
   const [summarytext, setsummarytext] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  console.log(API_URL)
 
   const handleSummarize = async () => {
     if (!editableText.trim()) {

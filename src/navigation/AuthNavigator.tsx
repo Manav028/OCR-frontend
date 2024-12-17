@@ -18,6 +18,7 @@ export type AuthStackParamList = {
 const Stack = createStackNavigator<AuthStackParamList>();
 
 const AuthNavigator: React.FC = () => (
+    
     <Stack.Navigator
         initialRouteName="Login"
         screenOptions={{

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Image, Alert, PermissionsAndroid, FlatList } from 'react-native';
+import { StyleSheet, Text, View, Image, Alert, PermissionsAndroid, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
 import CustomStatusBar from '../components/CustomStatusBar';
@@ -12,6 +12,12 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { BottomTabParamList } from '../navigation/BottomBarNavigator';
 import { useFocusEffect } from '@react-navigation/native';
 import ImageCropPicker from 'react-native-image-crop-picker';
+import { extractTextFromHandwriting, extractTextFromImage } from '../services/ocrService';
+import { useDispatch } from 'react-redux';
+import { SetOCRData } from '../store/ocrtext/OcrTextSlice';
+import axios from 'axios';
+import { API_URL } from '@env';
+import DocumentPicker from 'react-native-document-picker';
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Main'> & BottomTabNavigationProp<BottomTabParamList, 'Home'>;
 
@@ -19,12 +25,9 @@ type HomeScreenProps = {
   navigation: HomeScreenNavigationProp;
 };
 
-const userName = "Manav";
-
 const HomeScreen = ({ navigation }: HomeScreenProps) => {
+  const dispatch = useDispatch();
   const [photos, setPhotos] = useState<string[]>([]);
-  const [alertVisible, setAlertVisible] = useState(false);
-  const [updatedPhotos, setUpdatedPhotos] = useState<string[]>([]);
 
   const requestCameraPermission = async () => {
     try {
@@ -45,7 +48,29 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     }
   };
 
-  const handleTakePhotos = async () => {
+  const handleProcessText = async (imagePath: string, isHandwriting: boolean) => {
+    try {
+      
+      const extractedText = isHandwriting
+        ? await extractTextFromHandwriting(imagePath)
+        : await extractTextFromImage(imagePath);
+
+      console.log("Image Path: ", imagePath);
+      console.log("Extracted Text: ", extractedText);
+
+      dispatch(SetOCRData({ imagePath, extractedText }));
+
+      console.log('Data dispatched to Redux:', { imagePath, extractedText });
+
+      navigation.navigate('OCR', { screen: 'OCRMain' });
+    } catch (error) {
+      console.error('Error processing text:', error);
+      Alert.alert('Error', 'An error occurred while processing the image.');
+    }
+  };
+
+
+  const handleTakePhotos = async (isHandwriting: boolean) => {
     const hasPermission = await requestCameraPermission();
     if (hasPermission) {
       launchCamera(
@@ -57,7 +82,6 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
             console.error('Error: ', response.errorMessage);
           } else if (response.assets && response.assets[0]?.uri) {
             try {
-
               const photoUri = response.assets[0].uri.startsWith('file://')
                 ? response.assets[0].uri
                 : `file://${response.assets[0].uri}`;
@@ -73,8 +97,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
               });
 
               setPhotos([croppedImage.path]);
-              setUpdatedPhotos([croppedImage.path]);
-              navigation.navigate('OCR', { screen: 'OCRMain', params: { photos: [croppedImage.path] } });
+              await handleProcessText(croppedImage.path, isHandwriting);
             } catch (err) {
               console.error('Cropper Error:', err);
             }
@@ -86,17 +109,53 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     }
   };
 
+  const handlepickPDF = async (isHandwriting : boolean) => {
+    try {
+      const res = await DocumentPicker.pick({
+        type: [DocumentPicker.types.pdf],
+      });
+  
+      const fileUri = res[0]?.uri;
+      console.log('Selected PDF:', fileUri);
+  
+      const formData = new FormData();
+      formData.append('file', {
+        uri: fileUri,
+        type: 'application/pdf',
+        name: res[0]?.name || 'document.pdf',
+      });
+  
+      console.log('Uploading PDF to backend...');
 
-  const handleSelectFromLibrary = async () => {
-    launchImageLibrary({ mediaType: 'photo', selectionLimit: 1 }, (response) => {
+      console.log({API_URL})
+      const response = await axios.post(`${API_URL}/api/pdf/ocr`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
+      console.log('Extracted Text:', response.data.text);
+      Alert.alert('Extracted PDF Text', response.data.text);
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        console.log('User canceled PDF selection');
+      } else {
+        console.error('Error picking PDF:', err);
+        Alert.alert('Error', 'Failed to pick and process PDF.');
+      }
+    }
+  };
+
+  const handlepickImage = async (isHandwriting: boolean) => {
+    launchImageLibrary({ mediaType: 'photo', selectionLimit: 1 }, async (response) => {
       if (response.didCancel) {
         console.log('User canceled image selection');
       } else if (response.errorMessage) {
         console.error('Error: ', response.errorMessage);
       } else if (response.assets && response.assets.length > 0) {
-        const selectedPhotos = response.assets.map((asset) => asset.uri || '');
-        setPhotos(selectedPhotos);
-        navigation.navigate('OCR', { screen: 'OCRMain', params: { photos: selectedPhotos } });
+        const photoUri = response.assets[0]?.uri || '';
+        setPhotos([photoUri]);
+        await handleProcessText(photoUri, isHandwriting);
       }
     });
   };
@@ -104,7 +163,6 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   useFocusEffect(
     React.useCallback(() => {
       setPhotos([]);
-      setUpdatedPhotos([]);
     }, [])
   );
 
@@ -114,7 +172,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
       <ScrollView style={{ flex: 1, paddingHorizontal: 20 }} showsVerticalScrollIndicator={false}>
         <View style={styles.welcomeContainer}>
           <Text style={styles.helloText}>HELLO</Text>
-          <Text style={styles.userNameText}>{userName},</Text>
+          <Text style={styles.userNameText}>Manav,</Text>
         </View>
 
         <View style={styles.imageContainer}>
@@ -142,22 +200,32 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
         <View style={styles.FuncContainer}>
           <View style={styles.columnContainer}>
+
+            <TouchableOpacity onPress={() => handleTakePhotos(false)} style={styles.FunContainer1}>
+              <View style={styles.FunContainer1}>
+                <Text style={styles.boxText}>Camera</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.FunContainer1} onPress={()=>{handlepickImage(false)}}>
+              <View style={styles.FunContainer1}>
+                <Text style={styles.boxText}>From Library</Text>
+              </View>
+            </TouchableOpacity>
+
             <View style={styles.FunContainer1}>
-              <Text style={styles.boxText}>Camera</Text>
-            </View>
-            <View style={styles.FunContainer1}>
-              <Text style={styles.boxText}>Gallery</Text>
+              <Text style={styles.boxText}>Human Capture</Text>
             </View>
           </View>
-          <View style={styles.columnContainer}>
-            <View style={styles.FunContainer1}>
-              <Text style={styles.boxText}>PDF</Text>
-            </View>
-            <View style={styles.FunContainer1}>
-              <Text style={styles.boxText}>Human Handwritting</Text>
-            </View>
+
+          <TouchableOpacity onPress={()=>handlepickPDF(false)} style={styles.FunContainer1}>
+          <View style={styles.FunContainer1}>
+            <Text style={styles.boxText}>PDF</Text>
           </View>
+          </TouchableOpacity>
         </View>
+
+
 
         {photos.length > 0 && (
           <View style={styles.photoContainer}>
@@ -178,6 +246,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     </SafeAreaView>
   );
 };
+
 
 export default HomeScreen;
 

@@ -1,26 +1,30 @@
-import { createSlice, nanoid } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
 interface OCRState {
+    imagePath: string | null;
     extractedText: string | null;
 }
 
 const initialState: OCRState = {
-    extractedText: null
-}
+    imagePath: null,
+    extractedText: null,
+};
 
 const ocrSlice = createSlice({
-    name: 'ocrText',
+    name: 'ocr',
     initialState,
     reducers: {
-        SetOCRText: (state, action) => {
-            state.extractedText = action.payload;
+        SetOCRData: (state, action) => {
+            state.imagePath = action.payload.imagePath;
+            state.extractedText = action.payload.extractedText;
         },
-        RemoveOCRText: (state, action) => {
+        RemoveOCRData: (state) => {
+            state.imagePath = null;
             state.extractedText = null;
-        }
+        },
     },
 });
 
-export const {SetOCRText , RemoveOCRText} = ocrSlice.actions;
+export const { SetOCRData, RemoveOCRData } = ocrSlice.actions;
 
-export default ocrSlice.reducer
+export default ocrSlice.reducer;
