@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet,Text,View,TextInput,Alert,KeyboardAvoidingView,Platform,ScrollView,ActivityIndicator,Dimensions} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  ActivityIndicator,
+  Dimensions,
+} from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
@@ -10,14 +21,14 @@ import { Colors, fontfamily } from '../styles/Globalcss';
 import MainButton from '../components/MainButton';
 
 const OcrTranslationScreen = () => {
-
-  const { imagePath, extractedText } = useSelector((state : any) => state.ocr);
+  const { imagePath, extractedText } = useSelector((state: any) => state.ocr);
 
   const screenHeight = Dimensions.get('window').height;
   const maxHeight = screenHeight * 0.25;
 
-  const [editableText, setEditableText] = useState<string>(extractedText || ''); 
+  const [editableText, setEditableText] = useState<string>(extractedText || '');
   const [translatedText, setTranslatedText] = useState<string | null>(null);
+  const [sourceLanguage, setSourceLanguage] = useState<string | null>(null);
   const [targetLanguage, setTargetLanguage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +43,7 @@ const OcrTranslationScreen = () => {
     }
 
     if (!targetLanguage) {
-      Alert.alert('Error', 'Please select a language to translate.');
+      Alert.alert('Error', 'Please select a target language to translate.');
       return;
     }
 
@@ -40,7 +51,7 @@ const OcrTranslationScreen = () => {
       setLoading(true);
       const response = await axios.post(
         `${API_URL}/api/translate`,
-        { text: editableText, targetLanguage },
+        { text: editableText, sourceLanguage, targetLanguage },
         {
           headers: { 'Content-Type': 'application/json' },
         }
@@ -55,15 +66,9 @@ const OcrTranslationScreen = () => {
     }
   };
 
-  const handleClearText = () => {
-    setEditableText(''); 
-    setTranslatedText('');
-    setTargetLanguage(null);
-  };
-
   return (
     <SafeAreaView style={styles.safeAreaContainer}>
-      <CustomStatusBar backgroundColor={Colors.fourthbackgroound} />
+      <CustomStatusBar backgroundColor="black" barStyle="light-content" />
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -71,25 +76,49 @@ const OcrTranslationScreen = () => {
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.screenTitle}>OCR Translation</Text>
 
           <View style={styles.textSection}>
             <Text style={styles.sectionTitle}>Extracted Text</Text>
             <TextInput
-              style={[styles.textBox, editableText ? styles.textBoxFilled : styles.textBoxEmpty , {maxHeight : maxHeight}]}
+              style={[
+                styles.textBox,
+                editableText ? styles.textBoxFilled : styles.textBoxEmpty,
+                { maxHeight: maxHeight },
+              ]}
               value={editableText}
-              onChangeText={(text) => setEditableText(text)} 
+              onChangeText={(text) => setEditableText(text)}
               multiline
             />
           </View>
 
-          <View style={styles.pickerSection}>
-            <Text style={styles.sectionTitle}>Translate To</Text>
-            <View style={styles.pickerContainer}>
+          
+          <View style={styles.languageButtonsSection}>
+            <View style={styles.languageButtonContainer}>
+              <Text style={styles.sectionTitle}>Translate From</Text>
+              <RNPickerSelect
+                onValueChange={(value) => setSourceLanguage(value)}
+                items={[
+                  { label: 'English', value: 'en' },
+                  { label: 'Spanish', value: 'es' },
+                  { label: 'French', value: 'fr' },
+                  { label: 'German', value: 'de' },
+                  { label: 'Chinese', value: 'zh' },
+                  { label: 'Hindi', value: 'hi' },
+                ]}
+                value={sourceLanguage}
+                placeholder={{ label: 'Source Language', value: null }}
+                style={pickerStyles}
+                useNativeAndroidPickerStyle={false}
+              />
+            </View>
+            <View style={styles.languageButtonContainer}>
+              <Text style={styles.sectionTitle}>Translate To</Text>
               <RNPickerSelect
                 onValueChange={(value) => setTargetLanguage(value)}
                 items={[
+                  { label: 'English', value: 'en' },
                   { label: 'Spanish', value: 'es' },
                   { label: 'French', value: 'fr' },
                   { label: 'German', value: 'de' },
@@ -97,34 +126,39 @@ const OcrTranslationScreen = () => {
                   { label: 'Hindi', value: 'hi' },
                 ]}
                 value={targetLanguage}
-                placeholder={{ label: 'Please select a language...', value: null }}
+                placeholder={{ label: 'Target Language', value: null }}
                 style={pickerStyles}
                 useNativeAndroidPickerStyle={false}
               />
             </View>
           </View>
 
-          <View style={styles.textSection}>
-            <Text style={styles.sectionTitle}>Translated Text</Text>
-            <TextInput
-              style={[styles.textBox, translatedText ? styles.textBoxFilled : styles.textBoxEmpty, {maxHeight : maxHeight}]}
-              value={translatedText || ''}
-              onChangeText={setTranslatedText}
-              multiline
+          
+          <View style={styles.buttonSection}>
+            <MainButton
+              title='Translate'
+              Style={{ width: '100%' }}
+              onPress={handleTranslate}
+              loading={loading}
             />
           </View>
 
-          <View style={styles.buttonSection}>
-            <MainButton title="Translate" Style={{ width: '48%' }} onPress={handleTranslate} />
-            <MainButton title="Clear" Style={{ width: '48%' }} onPress={handleClearText} />
-          </View>
+          {translatedText && (
+            <View style={styles.textSection}>
+              <Text style={styles.sectionTitle}>Translated Text</Text>
+              <TextInput
+                style={[
+                  styles.nonEditableTextBox,
+                  { minHeight: 150 }, 
+                ]}
+                value={translatedText || ''}
+                editable={false}
+                multiline
+              />
+              <Text style={styles.readOnlyText}>* This text is read-only</Text>
+            </View>
+          )}
         </ScrollView>
-
-        {loading && (
-          <View style={styles.loaderOverlay}>
-            <ActivityIndicator size="large" color="#007bff" />
-          </View>
-        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -135,7 +169,7 @@ export default OcrTranslationScreen;
 const styles = StyleSheet.create({
   safeAreaContainer: {
     flex: 1,
-    paddingBottom : 50
+    paddingBottom: 50,
   },
   container: {
     flex: 1,
@@ -143,24 +177,24 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: Colors.fourthbackgroound,
   },
-  screenTitle: {
-    fontSize: 24,
-    color: '#333',
-    textAlign: 'center',
+  languageButtonsSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 20,
-    fontFamily: fontfamily.SpaceMonoBold,
+  },
+  languageButtonContainer: {
+    width: '48%',
   },
   textSection: {
     marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '400',
     color: '#444',
     marginBottom: 10,
-    fontFamily: fontfamily.SpaceMonoRegular,
   },
   textBox: {
     borderWidth: 2,
@@ -170,36 +204,30 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     minHeight: 150,
   },
+  nonEditableTextBox: {
+    borderWidth: 2,
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 16,
+    textAlignVertical: 'top',
+    backgroundColor: '#f0f0f0', 
+    borderColor: 'gray',
+  },
+  readOnlyText: {
+    fontSize: 12,
+    color: 'gray',
+    marginTop: 5,
+    fontStyle: 'italic',
+  },
   textBoxFilled: {
     borderColor: 'black',
   },
   textBoxEmpty: {
     borderColor: 'black',
   },
-  pickerSection: {
-    marginBottom: 40,
-  },
-  pickerContainer: {
-    borderWidth: 2,
-    borderRadius: 10,
-    borderColor: 'black',
-    padding: 5,
-  },
   buttonSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    marginBottom: 20,
     alignItems: 'center',
-  },
-  loaderOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
   },
 });
 
@@ -210,8 +238,8 @@ const pickerStyles = {
     paddingHorizontal: 10,
     borderRadius: 10,
     color: Colors.thirdbackground,
-    backgroundColor: Colors.fourthbackgroound,
-    fontfamily: fontfamily.SpaceMonoRegular,
+    borderWidth: 2,
+    borderColor: 'black',
   },
   inputAndroid: {
     fontSize: 16,
@@ -219,7 +247,7 @@ const pickerStyles = {
     paddingHorizontal: 10,
     borderRadius: 10,
     color: Colors.thirdbackground,
-    backgroundColor: Colors.fourthbackgroound,
-    fontfamily: fontfamily.SpaceMonoRegular,
+    borderWidth: 2,
+    borderColor: 'black',
   },
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity, TextInput, Dimensions, KeyboardAvoidingView, Platform, } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
@@ -12,6 +12,7 @@ import Screenheading from '../components/Screenheading'
 import MainButton from '../components/MainButton';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomStatusBar from '../components/CustomStatusBar';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { height } = Dimensions.get('window');
 
@@ -24,6 +25,20 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     const [passwordError, setPasswordError] = useState<string | null>(null);
     const [loginError, setLoginError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+
+    const resetState = () => {
+        setEmail('');
+        setPassword('');
+        setEmailError(null);
+        setPasswordError(null);
+        setLoginError(null);
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            resetState();
+        }, [])
+    );
 
     const handleEmpty = () => {
         let isValid = true;
@@ -120,7 +135,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
                     <View style={styles.container}>
 
                         <View style={styles.textcontainer}>
-                            <Screenheading title={'Login in to get started'} subtitle={"Sign In"} />
+                            <Screenheading title={'Welcome Back'} subtitle={"Enter your credential to login"}/>
                         </View>
 
                         <CustomInput
@@ -187,6 +202,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
         marginTop: 12,
+        fontFamily : fontfamily.SpaceMonoRegular
     },
     lineContainer: {
         alignSelf: 'center',

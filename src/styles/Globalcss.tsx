@@ -40,7 +40,7 @@ const FontSizes = {
 };
 
 const fontfamily = {
-    SpaceMonoBold : 'SpaceMono-Bold',
+    SpaceMonoBold : 'OpenSans_SemiCondensed-ExtraBoldItalic',
     SpaceMonoBoldItalic : 'SpaceMono-BoldItalic',
     SpaceMonoItalic : 'SpaceMono-Italic',
     SpaceMonoRegular : 'SpaceMono-Regular',

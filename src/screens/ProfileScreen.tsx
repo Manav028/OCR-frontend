@@ -8,10 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 const ProfileScreen = () => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingBottom: 60 }}>
-      <CustomStatusBar
-        backgroundColor={Colors.primarybackground}
-        translucent={false}
-      />
+      <CustomStatusBar backgroundColor={Colors.thirdbackground} translucent={false} barStyle="light-content" />
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <View>
           <Text>ProfileScreen</Text>

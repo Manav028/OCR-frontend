@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Image, Alert, PermissionsAndroid, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Image, Alert, PermissionsAndroid, FlatList, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
-import CustomStatusBar from '../components/CustomStatusBar';
 import { Colors, fontfamily, FontSizes } from '../styles/Globalcss';
 import MainButton from '../components/MainButton';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
@@ -18,6 +17,8 @@ import { SetOCRData } from '../store/ocrtext/OcrTextSlice';
 import axios from 'axios';
 import { API_URL } from '@env';
 import DocumentPicker from 'react-native-document-picker';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import CustomStatusBar from '../components/CustomStatusBar';
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Main'> & BottomTabNavigationProp<BottomTabParamList, 'Home'>;
 
@@ -28,6 +29,8 @@ type HomeScreenProps = {
 const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const dispatch = useDispatch();
   const [photos, setPhotos] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const requestCameraPermission = async () => {
     try {
@@ -50,99 +53,77 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
   const handleProcessText = async (imagePath: string, isHandwriting: boolean) => {
     try {
-      
+      setLoading(true);
       const extractedText = isHandwriting
         ? await extractTextFromHandwriting(imagePath)
         : await extractTextFromImage(imagePath);
 
-      console.log("Image Path: ", imagePath);
       console.log("Extracted Text: ", extractedText);
-
       dispatch(SetOCRData({ imagePath, extractedText }));
-
-      console.log('Data dispatched to Redux:', { imagePath, extractedText });
-
       navigation.navigate('OCR', { screen: 'OCRMain' });
     } catch (error) {
       console.error('Error processing text:', error);
       Alert.alert('Error', 'An error occurred while processing the image.');
+    } finally {
+      setLoading(false);
     }
   };
-
 
   const handleTakePhotos = async (isHandwriting: boolean) => {
     const hasPermission = await requestCameraPermission();
     if (hasPermission) {
-      launchCamera(
-        { mediaType: 'photo', saveToPhotos: true },
-        async (response) => {
-          if (response.didCancel) {
-            console.log('User canceled image capture');
-          } else if (response.errorMessage) {
-            console.error('Error: ', response.errorMessage);
-          } else if (response.assets && response.assets[0]?.uri) {
-            try {
-              const photoUri = response.assets[0].uri.startsWith('file://')
-                ? response.assets[0].uri
-                : `file://${response.assets[0].uri}`;
-
-              console.log('Photo URI:', photoUri);
-
-              const croppedImage = await ImageCropPicker.openCropper({
-                mediaType: 'photo',
-                path: photoUri,
-                width: 300,
-                height: 400,
-                cropping: true,
-              });
-
-              setPhotos([croppedImage.path]);
-              await handleProcessText(croppedImage.path, isHandwriting);
-            } catch (err) {
-              console.error('Cropper Error:', err);
-            }
+      launchCamera({ mediaType: 'photo', saveToPhotos: true }, async (response) => {
+        if (response.didCancel || response.errorMessage) {
+          console.log('Image capture canceled or failed');
+        } else if (response.assets && response.assets[0]?.uri) {
+          try {
+            setLoading(true);
+            const photoUri = `file://${response.assets[0].uri}`;
+            const croppedImage = await ImageCropPicker.openCropper({
+              mediaType: 'photo',
+              path: photoUri,
+              width: 300,
+              height: 400,
+              cropping: true,
+            });
+            await handleProcessText(croppedImage.path, isHandwriting);
+          } catch (err) {
+            console.error('Cropper Error:', err);
+          } finally {
+            setLoading(false);
           }
         }
-      );
-    } else {
-      Alert.alert('Permission Denied', 'Camera permission is required to use this feature.');
+      });
     }
   };
 
-  const handlepickPDF = async (isHandwriting : boolean) => {
+  const handlepickPDF = async () => {
     try {
+      setLoading(true);
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.pdf],
       });
-  
       const fileUri = res[0]?.uri;
-      console.log('Selected PDF:', fileUri);
-  
+
       const formData = new FormData();
       formData.append('file', {
         uri: fileUri,
         type: 'application/pdf',
         name: res[0]?.name || 'document.pdf',
       });
-  
-      console.log('Uploading PDF to backend...');
 
-      console.log({API_URL})
       const response = await axios.post(`${API_URL}/api/pdf/ocr`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-  
-      console.log('Extracted Text:', response.data.text);
-      Alert.alert('Extracted PDF Text', response.data.text);
+
+      const extractedText = response.data.text;
+      dispatch(SetOCRData({ imagePath: fileUri, extractedText }));
+      navigation.navigate('OCR', { screen: 'OCRMain' });
     } catch (err) {
-      if (DocumentPicker.isCancel(err)) {
-        console.log('User canceled PDF selection');
-      } else {
-        console.error('Error picking PDF:', err);
-        Alert.alert('Error', 'Failed to pick and process PDF.');
-      }
+      console.error('PDF Error:', err);
+      Alert.alert('Error', 'Failed to process PDF.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -154,10 +135,48 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         console.error('Error: ', response.errorMessage);
       } else if (response.assets && response.assets.length > 0) {
         const photoUri = response.assets[0]?.uri || '';
-        setPhotos([photoUri]);
-        await handleProcessText(photoUri, isHandwriting);
+
+        try {
+          setLoading(true);
+
+          const croppedImage = await ImageCropPicker.openCropper({
+            mediaType: 'photo',
+            path: photoUri,
+            width: 300,
+            height: 400,
+            cropping: true,
+          });
+
+          console.log('Cropped Image Path:', croppedImage.path);
+          setPhotos([croppedImage.path]);
+          await handleProcessText(croppedImage.path, isHandwriting);
+        } catch (cropError) {
+          console.error('Error while cropping image:', cropError);
+          Alert.alert('Error', 'Failed to crop the image.');
+        } finally {
+          setLoading(false);
+        }
       }
     });
+  };
+
+  const handleModalClose = () => {
+    setModalVisible(false);
+  };
+
+  const handleCameraPress = () => {
+    handleModalClose();
+    handleTakePhotos(false);
+  };
+
+  const handleGalleryPress = () => {
+    handleModalClose();
+    handlepickImage(false);
+  };
+
+  const handleHandwrittenPhotoPress = () => {
+    handleModalClose();
+    handlepickImage(true)
   };
 
   useFocusEffect(
@@ -167,82 +186,79 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingTop: 10, paddingBottom: 100 }}>
-      <CustomStatusBar backgroundColor={Colors.primarybackground} translucent={false} />
-      <ScrollView style={{ flex: 1, paddingHorizontal: 20 }} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+      <CustomStatusBar backgroundColor={Colors.thirdbackground} translucent={false} barStyle="light-content" />
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <View style={styles.welcomeContainer}>
-          <Text style={styles.helloText}>HELLO</Text>
+          <Text style={styles.helloText}>Hello</Text>
           <Text style={styles.userNameText}>Manav,</Text>
         </View>
 
-        <View style={styles.imageContainer}>
-          <Image
-            source={require('../../assets/images/ocr-background.jpeg')}
-            style={styles.image}
-          />
-          <View style={styles.buttonContainer}>
-            <MainButton
-              title="JUST FOR YOU"
-              touchable={false}
-              textColor={Colors.primartext}
-              Style={{ paddingHorizontal: 20, backgroundColor: Colors.primarybackground, paddingVertical: 7 }}
-            />
-          </View>
-          <View style={styles.buttonContainerOCR}>
-            <MainButton
-              title="OCR ->"
-              touchable={false}
-              textColor={Colors.primartext}
-              Style={{ paddingHorizontal: 20, backgroundColor: Colors.primarybackground, paddingVertical: 7 }}
-            />
-          </View>
-        </View>
-
-        <View style={styles.FuncContainer}>
-          <View style={styles.columnContainer}>
-
-            <TouchableOpacity onPress={() => handleTakePhotos(false)} style={styles.FunContainer1}>
-              <View style={styles.FunContainer1}>
-                <Text style={styles.boxText}>Camera</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.FunContainer1} onPress={()=>{handlepickImage(false)}}>
-              <View style={styles.FunContainer1}>
-                <Text style={styles.boxText}>From Library</Text>
-              </View>
-            </TouchableOpacity>
-
-            <View style={styles.FunContainer1}>
-              <Text style={styles.boxText}>Human Capture</Text>
+        <View style={styles.TextContainer}>
+              <Text style={[styles.Textstyle,{fontWeight : '600'}]}>Convert Image</Text>
+              <Text style={styles.Textstyle}>Into Text</Text>
             </View>
+
+        <View style={{ paddingHorizontal: 30 }}>
+          <View style={styles.imageSection}>
+            <Image
+              source={require('../../assets/images/ocr-Main-screen.png')}
+              style={styles.xlsImage}
+              resizeMode="contain"
+            />
           </View>
 
-          <TouchableOpacity onPress={()=>handlepickPDF(false)} style={styles.FunContainer1}>
-          <View style={styles.FunContainer1}>
-            <Text style={styles.boxText}>PDF</Text>
+          <View style={{ flex: 1, alignItems: 'center', marginTop : 40 }}>
+            <Text style={styles.smallTextstyle}>100% Automatically and Fast</Text>
           </View>
-          </TouchableOpacity>
+
+          <View style={{ marginTop: 30, gap: 10, paddingBottom: 100 }}>
+            <MainButton title="+ Upload Image" onPress={() => setModalVisible(true)} />
+            <MainButton title="+ Upload PDF" onPress={handlepickPDF}/>
+            <Text style={styles.smallTextstyle}>Just solve your image-to-text problem with one click</Text>
+          </View>
         </View>
 
-
-
-        {photos.length > 0 && (
-          <View style={styles.photoContainer}>
-            <Text style={styles.photoHeading}>Captured Photos:</Text>
-            <FlatList
-              data={photos}
-              horizontal
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item }) => (
-                <View style={styles.photoItem}>
-                  <Image source={{ uri: item }} style={styles.photoPreview} />
-                </View>
-              )}
-            />
+        {loading && (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={Colors.thirdbackground} />
           </View>
         )}
       </ScrollView>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={handleModalClose}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Image Source</Text>
+              <TouchableOpacity onPress={handleModalClose} >
+                <Ionicons name="close-outline" size={30} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ padding: 20, width: '100%', alignItems: 'center' }}>
+              <TouchableOpacity style={styles.modalButton} onPress={handleCameraPress}>
+                <Ionicons name='camera-outline' color="black" style={{fontSize : 30}}/>
+                <Text style={styles.modalButtonText}>Camera</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton} onPress={handleGalleryPress}>
+             <Ionicons name='image-outline' color="black" style={{fontSize : 30}}/>
+                <Text style={styles.modalButtonText}>Gallery</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton} onPress={handleHandwrittenPhotoPress}>
+              <Ionicons name='pencil-outline' color="black" style={{fontSize : 30}}/>
+                <Text style={styles.modalButtonText}>Handwritten Photo</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -252,7 +268,7 @@ export default HomeScreen;
 
 const styles = StyleSheet.create({
   welcomeContainer: {
-    backgroundColor: Colors.primarybackground,
+    backgroundColor: Colors.thirdbackground,
     alignItems: 'center',
     shadowColor: Colors.primaryshadowcolor,
     shadowOpacity: 0.1,
@@ -260,89 +276,149 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     flexDirection: 'row',
     gap: '7',
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+    fontWeight : 'bold'
   },
   helloText: {
     fontSize: FontSizes.large,
     fontFamily: fontfamily.SpaceMonoBold,
-    color: Colors.primartext,
+    color: Colors.thirdtext,
   },
   userNameText: {
     fontSize: FontSizes.large,
     fontFamily: fontfamily.SpaceMonoBold,
-    color: Colors.secondarytext,
+    color: Colors.thirdtext,
   },
-  imageContainer: {
-    position: 'relative',
+  imageSection: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
-    marginHorizontal: -20,
+    justifyContent: 'center',
+    marginTop : 40
   },
   image: {
-    width: '100%',
-    height: 320,
-    resizeMode: 'cover',
+    width: 100,
+    height: 100,
+    borderRadius: 8,
   },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 100,
-    left: 20,
-    alignSelf: 'center',
+  arrow: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    marginHorizontal: 10,
+    color: '#000',
   },
-  buttonContainerOCR: {
-    position: 'absolute',
-    bottom: 50,
-    left: 20,
-    alignSelf: 'center',
+  xlsImage: {
+    width: 350,
+    height: 150,
   },
-  FuncContainer: {
-    width: '100%',
-    height: 380,
-    flexDirection: 'row',
-    marginTop: -30,
-    gap: 7,
+  loaderContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
-  columnContainer: {
+  imagesec1: {
+    transform: [{ rotate: '345deg' }]
+  },
+  imagesec2: {
+    transform: [{ rotate: '270deg' }]
+  },
+  TextContainer: {
     flex: 1,
-    gap: 7,
-    flexDirection: 'column'
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
   },
-  FunContainer1: {
+  Textstyle: {
+    fontFamily: fontfamily.SpaceMonoBold,
+    fontSize: 38,
+    textAlign: 'center',
+
+
+  },
+  smallTextstyle: {
+    fontFamily: fontfamily.SpaceMonoBold,
+    fontSize: 17,
+    textAlign: 'center',
+    color : 'gray',
+    marginTop : 10
+  },
+  smallTextstyle2: {
+    fontFamily: fontfamily.SpaceMonoBold,
+    fontSize: 20,
+    textAlign: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: 10,
+  },
+  modalOverlay: {
     flex: 1,
-    backgroundColor: Colors.fifthbackground,
-    borderBottomColor: Colors.secondarytext,
-    borderRadius: 15,
-    position: 'relative',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  boxText: {
-    fontSize: FontSizes.medium,
+  modalContainer: {
+    backgroundColor: 'white',
+    width: '80%',
+    alignItems: 'center',
+    borderRadius : 10,
+  },
+  modalTitle: {
+    fontSize: FontSizes.large,
     fontFamily: fontfamily.SpaceMonoBold,
-    color: Colors.primartext,
+    color : Colors.thirdtext,
   },
-  funImage: {
-    width: '60%',
-    height: '50%',
-    resizeMode: 'contain',
-    borderRadius: 15,
-    marginBottom: 24,
+  modalButton: {
+    width: '100%',
+    paddingVertical: 8,
+    marginVertical: 5,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent : 'center',
+    flexDirection : 'row',
+    gap : 10,
+    backgroundColor : 'white',
+    borderColor : '#E4E0E1',
+    borderWidth : 2
   },
-  photoContainer: {
+  modalButtonText: {
+    fontSize: 18,
+    fontFamily: fontfamily.SpaceMonoBold,
+    color : 'black',
+  },
+  modalCloseButton: {
     marginTop: 20,
+    backgroundColor: Colors.secondarybackground,
+    paddingVertical: 10,
+    borderRadius: 8,
+    width: '50%',
+    alignItems: 'center',
   },
-  photoHeading: {
+  modalCloseButtonText: {
     fontSize: FontSizes.medium,
-    fontFamily: fontfamily.SpaceMonoBold,
-    color: Colors.primartext,
-    marginBottom: 10,
+    fontFamily: fontfamily.SpaceMonoRegular,
+    color: Colors.thirdtext,
   },
-  photoItem: {
-    marginRight: 10,
+  textWithBackground: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  photoPreview: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
-    resizeMode: 'cover',
+  backgroundImage: {
+    position: 'absolute',
+    width: '30%',
+    height: '100%',
+    borderRadius: 8,
+    resizeMode: 'contain'
+  },
+  modalHeader: {  
+    backgroundColor: 'black',
+    width: '100%',
+    height: 50,
+    flexDirection: 'row',
+    alignItems : 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    borderTopLeftRadius : 10,
+    borderTopRightRadius : 10
   },
 });

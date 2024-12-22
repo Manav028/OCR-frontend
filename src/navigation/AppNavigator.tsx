@@ -3,7 +3,7 @@ import { StyleSheet, View, ActivityIndicator, Text } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AuthNavigator from './AuthNavigator';
-import {BottomBarNavigator} from './BottomBarNavigator';
+import { BottomBarNavigator } from './BottomBarNavigator';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import OCRBottomBarNavigator from './OCRBottomBarNavigator';
@@ -19,7 +19,11 @@ const AppNavigator = () => {
       try {
         const token = await AsyncStorage.getItem('token');
         console.log(token)
-        setIsAuthenticated(true);
+        if (token) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
       } catch (error) {
         console.error('Error checking login status:', error);
         setIsAuthenticated(false);
@@ -34,7 +38,7 @@ const AppNavigator = () => {
 
     return () => clearTimeout(splashTimer);
   }, []);
-  
+
   if (!isSplashComplete) {
     return (
       <View style={styles.container}>
@@ -45,19 +49,22 @@ const AppNavigator = () => {
   }
 
   return (
-    <GestureHandlerRootView style={{flex:1}}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isAuthenticated ? (
-          <>
-          <Stack.Screen name="Main" component={BottomBarNavigator}/>
-          <Stack.Screen name="OCR" component={OCRBottomBarNavigator}/>
-          </>
-        ) : (
-          <Stack.Screen name="Auth" component={AuthNavigator}/>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {isAuthenticated ? (
+            <>
+              <Stack.Screen name="Main" component={BottomBarNavigator} />
+              <Stack.Screen name="OCR" component={OCRBottomBarNavigator} />
+            </>
+          ) : (
+            <>
+              <Stack.Screen name="Auth" component={AuthNavigator} />
+              <Stack.Screen name="OCR" component={OCRBottomBarNavigator} />
+            </>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
     </GestureHandlerRootView>
   );
 };

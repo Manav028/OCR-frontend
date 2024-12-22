@@ -30,8 +30,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenPorps> = ({ route, na
             const response = await axios.post(`${API_URL}/api/auth/verifyOTP`, { email, otp });
 
             if (response.data.message) {
-                Alert.alert('Success', 'Email verified successfully!');
-                navigation.replace('Login');
+                navigation.navigate('TutorialScreen')
             }
         } catch (err:any) {
             if (err.response && err.response.data) {

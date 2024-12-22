@@ -23,7 +23,8 @@ export const BottomBarNavigator = () => {
         tabBar={(props) => <TabBar {...props} />}
         screenOptions={{
           headerShown: false,
-        }}>
+        }}
+        >
         <TabNav.Screen
           name="Home"
           component={HomeScreen}

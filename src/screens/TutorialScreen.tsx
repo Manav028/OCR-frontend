@@ -5,7 +5,6 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
 import MainButton from '../components/MainButton';
 import CustomStatusBar from '../components/CustomStatusBar';
-import CustomBottomBar from '../components/CustomBottomBar';
 
 
 const { width } = Dimensions.get('window');
@@ -48,7 +47,7 @@ const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) => {
     const handleGetStarted = () => {
         navigation.reset({
             index: 0,
-            routes: [{ name: 'Home' }],
+            routes: [{ name: 'Main' }],
         });
     };
 
@@ -60,7 +59,7 @@ const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) => {
         >
 
             <CustomStatusBar
-                backgroundColor={Colors.fourthbackgroound}
+                backgroundColor={Colors.primarybackground}
                 barStyle="dark-content"
                 translucent={false}
             />
@@ -105,7 +104,7 @@ const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
     scrollContainer: {
         flex: 1,
-        backgroundColor: Colors.fourthbackgroound,
+        backgroundColor: Colors.primarybackground,
     },
     scrollContent: {
         flexGrow: 1,

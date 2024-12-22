@@ -7,46 +7,27 @@ import {
   TextInput,
   TouchableOpacity,
   Share,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
+  Dimensions,
+  ScrollView,
 } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { SetOCRData } from '../store/ocrtext/OcrTextSlice';
+import { useSelector } from 'react-redux';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { Colors, fontfamily } from '../styles/Globalcss';
-import CustomStatusBar from '../components/CustomStatusBar';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollView } from 'react-native-gesture-handler';
+import CustomStatusBar from '../components/CustomStatusBar';
 
 const OCRMainScreen: React.FC = () => {
-  const dispatch = useDispatch();
+  const { extractedText } = useSelector((state: any) => state.ocr);
 
-  const { imagePath, extractedText } = useSelector((state : any) => state.ocr);
+  const HeightScreen = Dimensions.get('screen').height;
 
   const [localText, setLocalText] = useState<string>(extractedText || '');
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
     setLocalText(extractedText || '');
   }, [extractedText]);
-
-  useEffect(() => {
-    const showSubscription = Keyboard.addListener('keyboardDidShow', () =>
-      setKeyboardVisible(true)
-    );
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () =>
-      setKeyboardVisible(false)
-    );
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
 
   const copyToClipboard = () => {
     if (localText) {
@@ -78,53 +59,45 @@ const OCRMainScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeAreaContainer}>
-      <CustomStatusBar backgroundColor={Colors.fourthbackgroound} />
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView
-          contentContainerStyle={[
-            styles.scrollContainer,
-            { paddingBottom: keyboardVisible ? 0 : 70 },
-          ]}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.content}>
-            <View style={styles.header}>
-              <Text style={styles.heading}>Extracted Text</Text>
-              <View style={styles.iconContainer}>
-                <TouchableOpacity onPress={copyToClipboard}>
-                  <Icon
-                    name={copied ? 'checkmark-done-outline' : 'copy-outline'}
-                    size={24}
-                    color={Colors.primaryborder}
-                    style={styles.icon}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={shareText}>
-                  <Icon
-                    name={shared ? 'checkmark-done-outline' : 'share-social-outline'}
-                    size={24}
-                    color={Colors.primaryborder}
-                    style={styles.icon}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
+      <CustomStatusBar backgroundColor="black" barStyle="light-content" />
+      <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
+        <View style={styles.cardContainer}>
+          <ScrollView style={{ height: HeightScreen - 300 }} nestedScrollEnabled>
             <TextInput
-              style={[styles.extractedTextInput, { marginBottom: keyboardVisible ? 10 : 0 }]}
+              style={styles.textInput}
               value={localText}
-              onChangeText={(text) => {
-                setLocalText(text);
-                // dispatch(SetOCRData({ imagePath, extractedText: text }));
-              }}
+              onChangeText={setLocalText}
+              placeholder="Extracted text will appear here"
+              placeholderTextColor="gray"
               multiline
-              textAlignVertical="top"
             />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          </ScrollView>
+        </View>
+        <View style={styles.buttonContainer}>
+          {copied ? (
+            <View style={styles.button}>
+              <Icon name="checkmark-outline" size={20} color="white" />
+              <Text style={styles.buttonText}>Copied</Text>
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.button} onPress={copyToClipboard}>
+              <Icon name="copy-outline" size={20} color="white" />
+              <Text style={styles.buttonText}>Copy</Text>
+            </TouchableOpacity>
+          )}
+          {shared ? (
+            <View style={styles.button}>
+              <Icon name="checkmark-outline" size={20} color="white" />
+              <Text style={styles.buttonText}>Shared</Text>
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.button} onPress={shareText}>
+              <Icon name="share-outline" size={20} color="white" />
+              <Text style={styles.buttonText}>Share</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
     </SafeAreaView>
   );
 };
@@ -134,52 +107,39 @@ export default OCRMainScreen;
 const styles = StyleSheet.create({
   safeAreaContainer: {
     flex: 1,
-    backgroundColor: Colors.fourthbackgroound,
+    backgroundColor: '#f5f5f5',
   },
-  container: {
-    flex: 1,
-    backgroundColor: Colors.fourthbackgroound,
+  cardContainer: {
+    width: '100%',
+    borderRadius: 15,
+    padding: 15,
+    shadowRadius: 5,
+    borderColor: '#E4E0E1',
+    borderWidth: 2,
   },
-  scrollContainer: {
-    flexGrow: 1,
-    padding: 20,
+  textInput: {
+    color: 'black',
+    fontSize: 16,
+    textAlignVertical: 'top',
   },
-  content: {
-    flex: 1,
-    padding: 5,
-  },
-  header: {
+  buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginTop: 20,
+  },
+  button: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.fourthbackgroound,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    borderWidth: 2,
-    padding: 10,
+    justifyContent: 'center',
+    backgroundColor: 'black',
+    padding: 15,
+    borderRadius: 10,
+    width: '40%',
   },
-  heading: {
-    fontSize: 20,
-    fontFamily: fontfamily.SpaceMonoBold,
-    flex: 1,
-  },
-  iconContainer: {
-    flexDirection: 'row',
-  },
-  icon: {
-    marginLeft: 15,
-  },
-  extractedTextInput: {
-    backgroundColor: Colors.fourthbackgroound,
-    padding: 10,
-    borderWidth: 2,
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-    flex: 1,
-  },
-  imagePathText: {
-    marginTop: 10,
-    fontSize: 14,
-    color: Colors.primaryborder,
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    marginLeft: 8,
   },
 });

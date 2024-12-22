@@ -36,12 +36,13 @@ const OcrTranslationScreen = () => {
       Alert.alert('Error', 'No text available to summarize.');
       return;
     }
-  
+
+    
     try {
       setLoading(true);
   
       const response = await axios.post(
-        `${API_URL}/api/summary`,
+        `${API_URL}/api/chatgpt/summary`,
         { text: editableText },
         {
           headers: { 'Content-Type': 'application/json' },
@@ -65,7 +66,7 @@ const OcrTranslationScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeAreaContainer}>
-      <CustomStatusBar backgroundColor={Colors.fourthbackgroound} />
+      <CustomStatusBar backgroundColor='black' barStyle='light-content'/>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -74,7 +75,6 @@ const OcrTranslationScreen = () => {
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.screenTitle}>OCR Summary</Text>
 
           <View style={styles.textSection}>
             <Text style={styles.sectionTitle}>Extracted Text</Text>
@@ -125,24 +125,22 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: Colors.fourthbackgroound,
+    
   },
   screenTitle: {
     fontSize: 24,
     color: '#333',
     textAlign: 'center',
     marginBottom: 20,
-    fontFamily: fontfamily.SpaceMonoBold,
   },
   textSection: {
     marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '400',
     color: '#444',
     marginBottom: 10,
-    fontFamily: fontfamily.SpaceMonoRegular,
   },
   textBox: {
     borderWidth: 2,

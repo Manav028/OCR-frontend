@@ -62,8 +62,6 @@ const RegisterScreen: React.FC<RegisterScreenProp> = ({ navigation }: RegisterSc
             return
         }
 
-        console.log(API_URL)
-
         try {
             setLoading(true)
             console.log(API_URL)
@@ -77,15 +75,18 @@ const RegisterScreen: React.FC<RegisterScreenProp> = ({ navigation }: RegisterSc
             if (error.response && error.response.data) {
                 const errorData = error.response.data.error;
                 console.log(errorData)
-                if (
-                    errorData.email === 'Email is already registered'
-                ) {
-                    setEmailError(null)
+                if (errorData.email === 'Email is already registered') {
+                    setEmailError("Email is already registered")
                     setPasswordError(null)
                     setconfirmPassworderror(null)
                     setusernameError(null)
-                    setregistererror("Email is already registered")
+                    
                     return;
+                } else if (errorData.username === 'Username is already exist'){
+                    setEmailError(null)
+                    setPasswordError(null)
+                    setconfirmPassworderror(null)
+                    setusernameError("Username is already exist")
                 }
                 setEmailError(errorData.email || null)
                 setPasswordError(errorData.password || null)
@@ -119,7 +120,7 @@ const RegisterScreen: React.FC<RegisterScreenProp> = ({ navigation }: RegisterSc
                     <View style={styles.container}>
                         
                         <View style={styles.textcontainer}>
-                            <Screenheading title={'Create account to get started'} subtitle={'Sign Up'} />
+                            <Screenheading title={'Sign Up'} subtitle={'Create your account'} />
                         </View>
 
                         <CustomInput
@@ -207,6 +208,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
         marginTop: 12,
+        fontFamily : fontfamily.SpaceMonoRegular
     },
     lineContainer: {
         alignSelf: 'center',

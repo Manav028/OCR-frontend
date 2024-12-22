@@ -12,7 +12,7 @@ const CustomStatusBar: React.FC<CustomStatusBar> = ({backgroundColor, barStyle =
     return (
         <StatusBar
             backgroundColor={backgroundColor}
-            barStyle={"dark-content"}
+            barStyle={barStyle}
             translucent={translucent}
         
         />

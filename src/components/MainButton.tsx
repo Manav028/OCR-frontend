@@ -63,6 +63,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
+    borderRadius : 20,
   },
   buttonText: {
     fontSize: height > 600 ? 18 : 16,
@@ -71,6 +72,7 @@ const styles = StyleSheet.create({
   disabledButton: {
     backgroundColor: Colors.secondarytext,
     opacity: 0.6,
+    borderRadius : 6
   },
   disabledText: {
     color: Colors.secondarytext,

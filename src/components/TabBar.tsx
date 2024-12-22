@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Animated } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Colors, FontSizes, fontfamily } from '../styles/Globalcss'; // Import global styles
+import { Colors, FontSizes, fontfamily } from '../styles/Globalcss';
 
 const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
   const scaleValue = new Animated.Value(1);
@@ -78,13 +78,13 @@ const TabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
               <Ionicons
                 name={iconName}
                 size={28}
-                color={isFocused ? Colors.secondarybackground : Colors.secondarytext} 
+                color={isFocused ? 'white' : Colors.secondarytext} 
               />
               <Text
                 style={[
                   styles.label,
                   {
-                    color: isFocused ? Colors.secondarybackground : Colors.secondarytext,
+                    color: isFocused ? 'white' : Colors.secondarytext,
                     fontFamily: isFocused ? fontfamily.SpaceMonoBold : fontfamily.SpaceMonoRegular, 
                   },
                 ]}>
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     bottom: 15,
     left: 20,
     right: 20,
-    backgroundColor: Colors.primarybackground,
+    backgroundColor: Colors.thirdbackground,
     borderRadius: 30,
     height: 70,
     flexDirection: 'row',

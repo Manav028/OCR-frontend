@@ -8,10 +8,7 @@ import { Colors } from '../styles/Globalcss'
 const StorageScreen = () => {
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white', paddingBottom: 60 }}>
-            <CustomStatusBar
-                backgroundColor={Colors.primarybackground}
-                translucent={false}
-            />
+            <CustomStatusBar backgroundColor={Colors.thirdbackground} translucent={false} barStyle="light-content" />
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
                 <View style={{}}>
                     <Text style={{ fontSize: 200 }}>StorageScreen</Text>
