@@ -58,6 +58,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
         setEmailError(null)
         setPasswordError(null)
         setLoginError(null)
+        console.log(API_URL)
 
         if (!handleEmpty()) {
             return;

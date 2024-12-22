@@ -17,7 +17,6 @@ const { height } = Dimensions.get('window')
 
 type RegisterScreenProp = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
-
 const RegisterScreen: React.FC<RegisterScreenProp> = ({ navigation }: RegisterScreenProp) => {
     const [username, setUsername] = useState<string>('');
     const [email, setEmail] = useState<string>('');
