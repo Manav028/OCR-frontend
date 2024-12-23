@@ -1,11 +1,14 @@
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/AuthNavigator';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { BottomTabParamList } from '../navigation/BottomBarNavigator';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import {API_URL} from '@env'
 
 type ProfileScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Main'> & BottomTabNavigationProp<BottomTabParamList, 'Profile'>;
 
@@ -13,15 +16,51 @@ type ProfileScreenProps = {
   navigation: ProfileScreenNavigationProp;
 };
 
-const ProfileScreen:React.FC<ProfileScreenProps> = ({ navigation }) => {
-  const { username, email } = {
-    username: 'Guest User',
-    email: 'guest@example.com',
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
+  const [profile, setProfile] = useState<{ username: string; email: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchProfile = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('No token found');
+
+      const response = await axios.get(`${API_URL}/api/auth/profile`, {
+        headers: { Authorization: `${token}` },
+      });
+
+      setProfile(response.data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleLogout = () => {
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('token');
     navigation.replace('Login');
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color="black" />
+      </SafeAreaView>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.errorText}>Failed to load profile</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -33,19 +72,19 @@ const ProfileScreen:React.FC<ProfileScreenProps> = ({ navigation }) => {
             }}
             style={styles.profileImage}
           />
-          <Text style={styles.username}>{username}</Text>
-          <Text style={styles.email}>{email}</Text>
+          <Text style={styles.username}>{profile.username}</Text>
+          <Text style={styles.email}>{profile.email}</Text>
         </View>
 
         <View style={styles.infoSection}>
           <Text style={styles.sectionTitle}>Account Details</Text>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Username:</Text>
-            <Text style={styles.infoValue}>{username}</Text>
+            <Text style={styles.infoValue}>{profile.username}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Email:</Text>
-            <Text style={styles.infoValue}>{email}</Text>
+            <Text style={styles.infoValue}>{profile.email}</Text>
           </View>
         </View>
 
@@ -62,24 +101,24 @@ export default ProfileScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF', // White background
+    backgroundColor: '#FFFFFF', 
   },
   header: {
     alignItems: 'center',
     paddingVertical: 20,
-    backgroundColor: '#F5F5F5', // Light gray for header background
+    backgroundColor: '#F5F5F5', 
   },
   profileImage: {
     width: 100,
     height: 100,
     borderRadius: 50,
     marginBottom: 10,
-    backgroundColor: '#E0E0E0', // Placeholder gray for profile image
+    backgroundColor: '#E0E0E0', 
   },
   username: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#000000', // Black text for username
+    color: '#000000', 
     marginBottom: 5,
   },
   email: {
@@ -123,5 +162,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#FFFFFF', // White text for button
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
   },
 });
