@@ -86,6 +86,11 @@ const OcrTranslationScreen = () => {
             />
           </View>
 
+          <View style={styles.buttonSection}>
+            <MainButton title="Summary" Style={{ width: '48%' }} onPress={handleSummarize}  />
+            <MainButton title="Clear" Style={{ width: '48%' }} onPress={handleClearText}  />
+          </View>
+
           <View style={styles.textSection}>
             <Text style={styles.sectionTitle}>Summary Text</Text>
             <TextInput
@@ -96,10 +101,6 @@ const OcrTranslationScreen = () => {
             />
           </View>
 
-          <View style={styles.buttonSection}>
-            <MainButton title="Summary" Style={{ width: '48%' }} onPress={handleSummarize}  />
-            <MainButton title="Clear" Style={{ width: '48%' }} onPress={handleClearText}  />
-          </View>
         </ScrollView>
 
         {loading && (
@@ -117,7 +118,7 @@ export default OcrTranslationScreen;
 const styles = StyleSheet.create({
   safeAreaContainer: {
     flex: 1,
-    paddingBottom : 50
+    paddingBottom : 0
   },
   container: {
     flex: 1,
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     padding: 20,
-    
+    paddingBottom: 0,
   },
   screenTitle: {
     fontSize: 24,
@@ -169,6 +170,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom : 20
   },
   loaderOverlay: {
     position: 'absolute',

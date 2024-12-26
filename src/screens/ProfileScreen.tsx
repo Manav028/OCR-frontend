@@ -26,7 +26,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       if (!token) throw new Error('No token found');
 
       const response = await axios.get(`${API_URL}/api/auth/profile`, {
-        headers: { Authorization: `${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       setProfile(response.data);
@@ -43,8 +43,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('token');
-    navigation.replace('Login');
+    navigation.replace('Auth',{screen : 'Login'});
   };
+
+  console.log(API_URL)
 
   if (loading) {
     return (

@@ -19,6 +19,7 @@ import { API_URL } from '@env';
 import DocumentPicker from 'react-native-document-picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import CustomStatusBar from '../components/CustomStatusBar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Main'> & BottomTabNavigationProp<BottomTabParamList, 'Home'>;
 
@@ -31,6 +32,80 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const [photos, setPhotos] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem('token');
+        if (storedToken) {
+          setToken(storedToken);
+        } else {
+          console.log('No token found');
+        }
+      } catch (error) {
+        console.error('Error retrieving token:', error);
+      }
+    };
+    fetchToken();
+  }, []);
+
+
+  const ImageExtension = (imagePath: string): string => {
+    const extension = imagePath.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'png':
+        return 'image/png';
+      case 'jpeg':
+      case 'jpg':
+        return 'image/jpeg';
+      default:
+        return 'application/octet-stream';
+    }
+  };
+
+  const uploadFile = async (formData: FormData): Promise<any> => {
+    try {
+      const response = await axios.post(`${API_URL}/api/upload`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('File upload error:', error);
+      throw error;
+    }
+  };
+
+  const handleProcessText = async (imagePath: string, isHandwriting: boolean) => {
+    try {
+      setLoading(true);
+      const extractedText = isHandwriting
+        ? await extractTextFromHandwriting(imagePath)
+        : await extractTextFromImage(imagePath);
+
+      const ImageExt = ImageExtension(imagePath);
+
+      const formData = new FormData();
+      formData.append('document', {
+        uri: imagePath.startsWith('file://') ? imagePath : `file://${imagePath}`,
+        type: ImageExt,
+        name: `ocr_image_${Date.now()}.${ImageExt.split('/')[1]}`,
+      });
+      formData.append('fileType', 'image');
+      const uploadResponse = await uploadFile(formData);
+
+      dispatch(SetOCRData({ imagePath, extractedText }));
+      navigation.navigate('OCR', { screen: 'OCRMain' });
+    } catch (error) {
+      console.error('Error processing text:', error);
+      Alert.alert('Error', 'An error occurred while processing the image.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const requestCameraPermission = async () => {
     try {
@@ -48,24 +123,6 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     } catch (err) {
       console.warn(err);
       return false;
-    }
-  };
-
-  const handleProcessText = async (imagePath: string, isHandwriting: boolean) => {
-    try {
-      setLoading(true);
-      const extractedText = isHandwriting
-        ? await extractTextFromHandwriting(imagePath)
-        : await extractTextFromImage(imagePath);
-
-      console.log("Extracted Text: ", extractedText);
-      dispatch(SetOCRData({ imagePath, extractedText }));
-      navigation.navigate('OCR', { screen: 'OCRMain' });
-    } catch (error) {
-      console.error('Error processing text:', error);
-      Alert.alert('Error', 'An error occurred while processing the image.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -100,23 +157,45 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const handlepickPDF = async () => {
     try {
       setLoading(true);
+  
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.pdf],
       });
       const fileUri = res[0]?.uri;
-
-      const formData = new FormData();
-      formData.append('file', {
+  
+      const extractFormData = new FormData();
+      extractFormData.append('file', {
         uri: fileUri,
         type: 'application/pdf',
         name: res[0]?.name || 'document.pdf',
       });
-
-      const response = await axios.post(`${API_URL}/api/pdf/ocr`, formData, {
+  
+      const response = await axios.post(`${API_URL}/api/pdf/ocr`, extractFormData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-
+  
       const extractedText = response.data.text;
+
+    
+      console.log(token)
+
+      const uploadFormData = new FormData();
+      uploadFormData.append('document', {
+        uri: fileUri,
+        type: 'application/pdf',
+        name: res[0]?.name || 'document.pdf',
+      });
+      uploadFormData.append('fileType', 'pdf');
+  
+      const uploadResponse = await axios.post(`${API_URL}/api/upload`, uploadFormData, {
+        headers: { 
+          Accept: 'application/json',
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+         },
+      });
+      console.log('Upload Response:', uploadResponse.data);
+  
       dispatch(SetOCRData({ imagePath: fileUri, extractedText }));
       navigation.navigate('OCR', { screen: 'OCRMain' });
     } catch (err) {
@@ -160,6 +239,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     });
   };
 
+
   const handleModalClose = () => {
     setModalVisible(false);
   };
@@ -195,9 +275,9 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         </View>
 
         <View style={styles.TextContainer}>
-              <Text style={[styles.Textstyle,{fontWeight : '600'}]}>Convert Image</Text>
-              <Text style={styles.Textstyle}>Into Text</Text>
-            </View>
+          <Text style={[styles.Textstyle, { fontWeight: '600' }]}>Convert Image</Text>
+          <Text style={styles.Textstyle}>Into Text</Text>
+        </View>
 
         <View style={{ paddingHorizontal: 30 }}>
           <View style={styles.imageSection}>
@@ -208,13 +288,13 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
             />
           </View>
 
-          <View style={{ flex: 1, alignItems: 'center', marginTop : 40 }}>
+          <View style={{ flex: 1, alignItems: 'center', marginTop: 40 }}>
             <Text style={styles.smallTextstyle}>100% Automatically and Fast</Text>
           </View>
 
           <View style={{ marginTop: 30, gap: 10, paddingBottom: 100 }}>
             <MainButton title="+ Upload Image" onPress={() => setModalVisible(true)} />
-            <MainButton title="+ Upload PDF" onPress={handlepickPDF}/>
+            <MainButton title="+ Upload PDF" onPress={handlepickPDF} />
             <Text style={styles.smallTextstyle}>Just solve your image-to-text problem with one click</Text>
           </View>
         </View>
@@ -244,15 +324,15 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
             <View style={{ padding: 20, width: '100%', alignItems: 'center' }}>
               <TouchableOpacity style={styles.modalButton} onPress={handleCameraPress}>
-                <Ionicons name='camera-outline' color="black" style={{fontSize : 30}}/>
+                <Ionicons name='camera-outline' color="black" style={{ fontSize: 30 }} />
                 <Text style={styles.modalButtonText}>Camera</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalButton} onPress={handleGalleryPress}>
-             <Ionicons name='image-outline' color="black" style={{fontSize : 30}}/>
+                <Ionicons name='image-outline' color="black" style={{ fontSize: 30 }} />
                 <Text style={styles.modalButtonText}>Gallery</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.modalButton} onPress={handleHandwrittenPhotoPress}>
-              <Ionicons name='pencil-outline' color="black" style={{fontSize : 30}}/>
+                <Ionicons name='pencil-outline' color="black" style={{ fontSize: 30 }} />
                 <Text style={styles.modalButtonText}>Handwritten Photo</Text>
               </TouchableOpacity>
             </View>
@@ -278,7 +358,7 @@ const styles = StyleSheet.create({
     gap: '7',
     paddingVertical: 15,
     paddingHorizontal: 15,
-    fontWeight : 'bold'
+    fontWeight: 'bold'
   },
   helloText: {
     fontSize: FontSizes.large,
@@ -294,7 +374,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop : 40
+    marginTop: 40
   },
   image: {
     width: 100,
@@ -340,8 +420,8 @@ const styles = StyleSheet.create({
     fontFamily: fontfamily.SpaceMonoBold,
     fontSize: 17,
     textAlign: 'center',
-    color : 'gray',
-    marginTop : 10
+    color: 'gray',
+    marginTop: 10
   },
   smallTextstyle2: {
     fontFamily: fontfamily.SpaceMonoBold,
@@ -360,12 +440,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     width: '80%',
     alignItems: 'center',
-    borderRadius : 10,
+    borderRadius: 10,
   },
   modalTitle: {
     fontSize: FontSizes.large,
     fontFamily: fontfamily.SpaceMonoBold,
-    color : Colors.thirdtext,
+    color: Colors.thirdtext,
   },
   modalButton: {
     width: '100%',
@@ -373,17 +453,17 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     borderRadius: 8,
     alignItems: 'center',
-    justifyContent : 'center',
-    flexDirection : 'row',
-    gap : 10,
-    backgroundColor : 'white',
-    borderColor : '#E4E0E1',
-    borderWidth : 2
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    backgroundColor: 'white',
+    borderColor: '#E4E0E1',
+    borderWidth: 2
   },
   modalButtonText: {
     fontSize: 18,
     fontFamily: fontfamily.SpaceMonoBold,
-    color : 'black',
+    color: 'black',
   },
   modalCloseButton: {
     marginTop: 20,
@@ -410,15 +490,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     resizeMode: 'contain'
   },
-  modalHeader: {  
+  modalHeader: {
     backgroundColor: 'black',
     width: '100%',
     height: 50,
     flexDirection: 'row',
-    alignItems : 'center',
+    alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 15,
-    borderTopLeftRadius : 10,
-    borderTopRightRadius : 10
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10
   },
 });

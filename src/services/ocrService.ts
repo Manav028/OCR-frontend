@@ -1,8 +1,8 @@
-import RNFS from 'react-native-fs'
-import { GOOGLE_CLOUD_API_KEY,AZURE_ENDPOINT,AZURE_API_KEY , API_URL } from '@env';
+import { GOOGLE_CLOUD_API_KEY, AZURE_ENDPOINT, AZURE_API_KEY, API_URL } from '@env';
 import axios from 'axios';
-import {Buffer} from 'buffer'
-global.Buffer = Buffer  
+import { Buffer } from 'buffer'
+global.Buffer = Buffer
+import RNFS from 'react-native-fs'
 
 const speelingCorrectText = async (text: string): Promise<string | null> => {
   try {
@@ -24,9 +24,8 @@ const speelingCorrectText = async (text: string): Promise<string | null> => {
 
 
 export const extractTextFromImage = async (imagePath: string): Promise<string | null> => {
-  const base64Image = await RNFS.readFile(imagePath,'base64')
-  console.log(API_URL)  
-  console.log(GOOGLE_CLOUD_API_KEY)
+  const base64Image = await RNFS.readFile(imagePath, 'base64')
+
   try {
     const requestBody = {
       requests: [
@@ -55,7 +54,8 @@ export const extractTextFromImage = async (imagePath: string): Promise<string | 
     const extractedText = response.data.responses[0]?.fullTextAnnotation?.text;
     if (extractedText) {
       console.log('Extracted Text (Image):', extractedText);
-      return await speelingCorrectText(extractedText); // Apply spelling correction
+      return extractedText
+      // return await speelingCorrectText(extractedText); // Apply spelling correction
     } else {
       console.warn('No text extracted from the image.');
       return null;
@@ -119,7 +119,7 @@ export const extractTextFromHandwriting = async (imagePath: string): Promise<str
     // Step 6: Extract the text lines from the result
     if (result) {
       const lines = result
-        .flatMap((readResult: any) => 
+        .flatMap((readResult: any) =>
           readResult.lines.map((line: any) => line.text)
         )
         .join('\n'); // Combine all lines into a single string
@@ -135,3 +135,104 @@ export const extractTextFromHandwriting = async (imagePath: string): Promise<str
     return null;
   }
 };
+
+export const extractTextFromImageStorage = async (imageUrl: string): Promise<string | null> => {
+  let localFilePath = '';
+
+  try {
+    const fileName = `temp_${Date.now()}.jpg`;
+    localFilePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
+
+    const downloadResponse = await RNFS.downloadFile({
+      fromUrl: imageUrl,
+      toFile: localFilePath,
+    }).promise;
+
+    console.log('Download Response:', downloadResponse);
+
+    if (downloadResponse.statusCode !== 200) {
+      console.error('Failed to download the image.');
+      return null;
+    }
+
+    const base64Image = await RNFS.readFile(localFilePath, 'base64');
+
+    try {
+      const requestBody = {
+        requests: [
+          {
+            image: {
+              content: base64Image,
+            },
+            features: [
+              {
+                type: 'TEXT_DETECTION',
+              },
+            ],
+          },
+        ],
+      };
+
+      const response = await axios.post(
+        `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_CLOUD_API_KEY}`,
+        requestBody,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      const extractedText = response.data.responses[0]?.fullTextAnnotation?.text;
+      if (extractedText) {
+        console.log('Extracted Text (Image):', extractedText);
+        return extractedText
+        // return await speelingCorrectText(extractedText); // Apply spelling correction
+      } else {
+        console.warn('No text extracted from the image.');
+        return null;
+      }
+    } catch (error) {
+      console.error("Error extracting text: ", error);
+      return null;
+    }
+
+  } catch (error) {
+    console.error('Error extracting text download or base64:', error);
+    return null;
+  } finally {
+    if (localFilePath) {
+      try {
+        await RNFS.unlink(localFilePath);
+      } catch (cleanupError) {
+        console.warn('Error cleaning up temporary file:', cleanupError);
+      }
+    }
+  }
+};
+
+export const extracttextfrompdf = async (fileUri: string) => {
+
+  try {
+    const extractFormData = new FormData();
+    extractFormData.append('file', {
+      uri: fileUri,
+      type: 'application/pdf',
+      name: 'document.pdf',
+    });
+
+    const response = await axios.post(`${API_URL}/api/pdf/ocr`, extractFormData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    if (response.data?.text) {
+      return response.data.text;
+    } else {
+      console.error('No text extracted.');
+      return null;
+    }
+  } catch (error) {
+    console.error('Error extracting text from PDF:', error);
+    throw error;
+  }
+
+}   

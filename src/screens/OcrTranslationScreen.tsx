@@ -71,7 +71,7 @@ const OcrTranslationScreen = () => {
       <CustomStatusBar backgroundColor="black" barStyle="light-content" />
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContainer}
@@ -169,7 +169,7 @@ export default OcrTranslationScreen;
 const styles = StyleSheet.create({
   safeAreaContainer: {
     flex: 1,
-    paddingBottom: 50,
+    paddingBottom: 50
   },
   container: {
     flex: 1,
@@ -177,6 +177,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     padding: 20,
+    paddingBottom: 0,
   },
   languageButtonsSection: {
     flexDirection: 'row',

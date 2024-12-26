@@ -56,6 +56,7 @@ const AppNavigator = () => {
             <>
               <Stack.Screen name="Main" component={BottomBarNavigator} />
               <Stack.Screen name="OCR" component={OCRBottomBarNavigator} />
+              <Stack.Screen name="Auth" component={AuthNavigator}/>
             </>
           ) : (
             <>
