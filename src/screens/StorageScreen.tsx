@@ -97,6 +97,7 @@ const StorageScreen: React.FC<StorageScreenProps> = ({navigation}) => {
 
   const handleProcessText = async (imagePath: string, isHandwriting: boolean) => {
       try {
+        console.log(API_URL)
         setLoading(true);
         const extractedText = await extractTextFromImageStorage(imagePath);
         dispatch(SetOCRData({ imagePath, extractedText }));

@@ -37,6 +37,7 @@ const OcrTranslationScreen = () => {
   }, [extractedText]);
 
   const handleTranslate = async () => {
+    console.log(API_URL)
     if (!editableText.trim()) {
       Alert.alert('Error', 'No text available to translate.');
       return;
@@ -81,19 +82,23 @@ const OcrTranslationScreen = () => {
 
           <View style={styles.textSection}>
             <Text style={styles.sectionTitle}>Extracted Text</Text>
-            <TextInput
-              style={[
-                styles.textBox,
-                editableText ? styles.textBoxFilled : styles.textBoxEmpty,
-                { maxHeight: maxHeight },
-              ]}
-              value={editableText}
-              onChangeText={(text) => setEditableText(text)}
-              multiline
-            />
+            <ScrollView
+              style={[styles.textBox, { maxHeight: maxHeight }]}
+              contentContainerStyle={styles.scrollViewContent}
+              nestedScrollEnabled={true}
+              showsVerticalScrollIndicator={true}
+            >
+              <TextInput
+                style={styles.textInput}
+                value={editableText}
+                onChangeText={(text) => setEditableText(text)}
+                multiline
+                editable
+                textAlignVertical="top" // Ensures text starts from the top
+              />
+            </ScrollView>
           </View>
 
-          
           <View style={styles.languageButtonsSection}>
             <View style={styles.languageButtonContainer}>
               <Text style={styles.sectionTitle}>Translate From</Text>
@@ -133,7 +138,7 @@ const OcrTranslationScreen = () => {
             </View>
           </View>
 
-          
+
           <View style={styles.buttonSection}>
             <MainButton
               title='Translate'
@@ -149,13 +154,14 @@ const OcrTranslationScreen = () => {
               <TextInput
                 style={[
                   styles.nonEditableTextBox,
-                  { minHeight: 150 }, 
+                  { minHeight: 150 },
+                  { maxHeight: maxHeight },
                 ]}
                 value={translatedText || ''}
                 editable={false}
                 multiline
               />
-              <Text style={styles.readOnlyText}>* This text is read-only</Text>
+              <Text style={[styles.readOnlyText, { marginBottom: 50 }]}>* This text is read-only</Text>
             </View>
           )}
         </ScrollView>
@@ -169,7 +175,6 @@ export default OcrTranslationScreen;
 const styles = StyleSheet.create({
   safeAreaContainer: {
     flex: 1,
-    paddingBottom: 50
   },
   container: {
     flex: 1,
@@ -200,10 +205,12 @@ const styles = StyleSheet.create({
   textBox: {
     borderWidth: 2,
     borderRadius: 10,
-    padding: 12,
+    padding: 0, // Remove internal padding from the ScrollView container
     fontSize: 16,
-    textAlignVertical: 'top',
-    minHeight: 150,
+    maxHeight: 300, // Restricts the height of the ScrollView
+    minHeight: 150, // Minimum height for smaller text
+    overflow: 'hidden', // Prevents content overflow
+    borderColor: 'black',
   },
   nonEditableTextBox: {
     borderWidth: 2,
@@ -211,7 +218,7 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     textAlignVertical: 'top',
-    backgroundColor: '#f0f0f0', 
+    backgroundColor: '#f0f0f0',
     borderColor: 'gray',
   },
   readOnlyText: {
@@ -229,6 +236,15 @@ const styles = StyleSheet.create({
   buttonSection: {
     marginBottom: 20,
     alignItems: 'center',
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
+
+  textInput: {
+    padding: 12, // Padding for the actual input text
+    fontSize: 16,
+    textAlignVertical: 'top', // Ensures text starts from the top
   },
 });
 

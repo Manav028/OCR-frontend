@@ -33,6 +33,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [token, setToken] = useState<string | null>(null);
+  const [handwrittenModalVisible, setHandwrittenModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -157,26 +158,26 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const handlepickPDF = async () => {
     try {
       setLoading(true);
-  
+
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.pdf],
       });
       const fileUri = res[0]?.uri;
-  
+
       const extractFormData = new FormData();
       extractFormData.append('file', {
         uri: fileUri,
         type: 'application/pdf',
         name: res[0]?.name || 'document.pdf',
       });
-  
+
       const response = await axios.post(`${API_URL}/api/pdf/ocr`, extractFormData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-  
+
       const extractedText = response.data.text;
 
-    
+
       console.log(token)
 
       const uploadFormData = new FormData();
@@ -186,16 +187,16 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         name: res[0]?.name || 'document.pdf',
       });
       uploadFormData.append('fileType', 'pdf');
-  
+
       const uploadResponse = await axios.post(`${API_URL}/api/upload`, uploadFormData, {
-        headers: { 
+        headers: {
           Accept: 'application/json',
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${token}`,
-         },
+        },
       });
       console.log('Upload Response:', uploadResponse.data);
-  
+
       dispatch(SetOCRData({ imagePath: fileUri, extractedText }));
       navigation.navigate('OCR', { screen: 'OCRMain' });
     } catch (err) {
@@ -288,22 +289,17 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
             />
           </View>
 
-          <View style={{ flex: 1, alignItems: 'center', marginTop: 40 }}>
+          <View style={{ flex: 1, alignItems: 'center', marginTop: 20 }}>
             <Text style={styles.smallTextstyle}>100% Automatically and Fast</Text>
           </View>
 
           <View style={{ marginTop: 30, gap: 10, paddingBottom: 100 }}>
             <MainButton title="+ Upload Image" onPress={() => setModalVisible(true)} />
             <MainButton title="+ Upload PDF" onPress={handlepickPDF} />
+            <MainButton title="+ Upload Handwritten Image" onPress={() => setHandwrittenModalVisible(true)} />
             <Text style={styles.smallTextstyle}>Just solve your image-to-text problem with one click</Text>
           </View>
         </View>
-
-        {loading && (
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color={Colors.thirdbackground} />
-          </View>
-        )}
       </ScrollView>
 
       <Modal
@@ -331,14 +327,66 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
                 <Ionicons name='image-outline' color="black" style={{ fontSize: 30 }} />
                 <Text style={styles.modalButtonText}>Gallery</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButton} onPress={handleHandwrittenPhotoPress}>
-                <Ionicons name='pencil-outline' color="black" style={{ fontSize: 30 }} />
-                <Text style={styles.modalButtonText}>Handwritten Photo</Text>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={handwrittenModalVisible}
+        onRequestClose={() => setHandwrittenModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Image Source</Text>
+              <TouchableOpacity onPress={() => setHandwrittenModalVisible(false)}>
+                <Ionicons name="close-outline" size={30} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ padding: 20, width: '100%', alignItems: 'center' }}>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => {
+                  setHandwrittenModalVisible(false);
+                  handleTakePhotos(true);
+                }}>
+                <Ionicons name="camera-outline" color="black" style={{ fontSize: 30 }} />
+                <Text style={styles.modalButtonText}>Take Photo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => {
+                  setHandwrittenModalVisible(false);
+                  handlepickImage(true);
+                }}>
+                  <Ionicons name="image-outline" color="black" style={{ fontSize: 30 }} />
+                <Text style={styles.modalButtonText}>Select from Gallery</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
+
+      {loading && (
+  <Modal
+    transparent={true}
+    animationType="fade"
+    visible={loading}
+    onRequestClose={() => {}}
+  >
+    <View style={styles.loaderOverlay}>
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color={Colors.thirdbackground} />
+        <Text style={styles.loaderText}>Processing...</Text>
+      </View>
+    </View>
+  </Modal>
+)}
+      
     </SafeAreaView>
   );
 };
@@ -374,7 +422,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 40
+    marginTop: 20
   },
   image: {
     width: 100,
@@ -390,12 +438,6 @@ const styles = StyleSheet.create({
   xlsImage: {
     width: 350,
     height: 150,
-  },
-  loaderContainer: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
   },
   imagesec1: {
     transform: [{ rotate: '345deg' }]
@@ -501,4 +543,34 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10
   },
+  loaderOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black background
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  
+  loaderContainer: {
+    width: 120,
+    height: 120,
+    backgroundColor: 'white', // Background color for the loader
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5, // Shadow for Android
+  },
+  
+  loaderText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontFamily: fontfamily.SpaceMonoBold,
+    color: Colors.thirdtext,
+    textAlign: 'center',
+  },
+  
 });

@@ -6,6 +6,8 @@ import RNFS from 'react-native-fs'
 
 const speelingCorrectText = async (text: string): Promise<string | null> => {
   try {
+    console.log(API_URL)
+    
     const response = await axios.post(
       `${API_URL}/api/chatgpt/spelling`,
       { text },
@@ -68,7 +70,6 @@ export const extractTextFromImage = async (imagePath: string): Promise<string | 
 
 export const extractTextFromHandwriting = async (imagePath: string): Promise<string | null> => {
   try {
-    console.log('Starting Azure OCR for handwriting...');
 
     // Step 1: Read the image as a base64 string
     const imageBuffer = await RNFS.readFile(imagePath, 'base64'); // Read the file
@@ -125,7 +126,9 @@ export const extractTextFromHandwriting = async (imagePath: string): Promise<str
         .join('\n'); // Combine all lines into a single string
 
       console.log('Extracted Handwritten Text:', lines);
-      return lines; // Return the extracted text
+      console.log("Manav patel")
+      const extractedText = await speelingCorrectText(lines);
+      return extractedText
     } else {
       console.error('No text found in Azure OCR result.');
       return null;

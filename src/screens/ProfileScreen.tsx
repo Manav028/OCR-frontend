@@ -22,6 +22,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
   const fetchProfile = async () => {
     try {
+      
       const token = await AsyncStorage.getItem('token');
       if (!token) throw new Error('No token found');
 
