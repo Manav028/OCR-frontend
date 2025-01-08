@@ -62,6 +62,7 @@ const RegisterScreen: React.FC<RegisterScreenProp> = ({ navigation }: RegisterSc
         }
 
         try {
+            console.log("Manav")
             setLoading(true)
 
             const response = await axios.post(`${API_URL}/api/auth/signup`, { username, email, password })
@@ -105,6 +106,7 @@ const RegisterScreen: React.FC<RegisterScreenProp> = ({ navigation }: RegisterSc
             <CustomStatusBar
                 backgroundColor={Colors.primarybackground}
                 translucent={false}
+                barStyle='dark-content'
             />
 
             <KeyboardAvoidingView
@@ -207,7 +209,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
         marginTop: 12,
-        fontFamily : fontfamily.SpaceMonoRegular
     },
     lineContainer: {
         alignSelf: 'center',
@@ -219,11 +220,9 @@ const styles = StyleSheet.create({
         color: Colors.primartext,
         fontSize: 14,
         textAlign: 'center',
-        fontFamily: fontfamily.SpaceMonoRegular,
     },
     registerLink: {
         color: Colors.primartext,
-        fontFamily: fontfamily.SpaceMonoBold,
     },
 });
 

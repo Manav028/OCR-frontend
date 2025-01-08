@@ -40,7 +40,6 @@ const OcrTranslationScreen = () => {
     
     try {
       setLoading(true);
-  
       const response = await axios.post(
         `${API_URL}/api/chatgpt/summary`,
         { text: editableText },
@@ -78,12 +77,16 @@ const OcrTranslationScreen = () => {
 
           <View style={styles.textSection}>
             <Text style={styles.sectionTitle}>Extracted Text</Text>
+            <View style={styles.cardContainer}>
+            <ScrollView style={{ height: maxHeight }} nestedScrollEnabled>
             <TextInput
-              style={[styles.textBox, editableText ? styles.textBoxFilled : styles.textBoxEmpty , {maxHeight : maxHeight}]}
+              style={styles.textInput}
               value={editableText}
               onChangeText={(text) => setEditableText(text)} 
               multiline
             />
+            </ScrollView>
+            </View>
           </View>
 
           <View style={styles.buttonSection}>
@@ -93,12 +96,16 @@ const OcrTranslationScreen = () => {
 
           <View style={styles.textSection}>
             <Text style={styles.sectionTitle}>Summary Text</Text>
+            <View style={styles.cardContainer}>
+            <ScrollView style={{ height: maxHeight }} nestedScrollEnabled>
             <TextInput
-              style={[styles.textBox, translatedText ? styles.textBoxFilled : styles.textBoxEmpty, {maxHeight : maxHeight}]}
+              style={styles.textInput}
               value={summarytext || ''}
               onChangeText={setsummarytext}
               multiline
             />
+            </ScrollView>
+            </View>
           </View>
 
         </ScrollView>
@@ -182,6 +189,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
+  },
+  textInput: {
+    color: 'black',
+    fontSize: 16,
+    textAlignVertical: 'top',
+  },
+  cardContainer: {
+    width: '100%',
+    borderRadius: 15,
+    padding: 15,
+    shadowRadius: 5,
+    borderColor: '#E4E0E1',
+    borderWidth: 2,
   },
 });
 

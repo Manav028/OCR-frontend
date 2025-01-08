@@ -80,7 +80,6 @@ const styles = StyleSheet.create({
         height: 50,
         fontSize: 16,
         color: Colors.primaryborder,
-        fontFamily: fontfamily.SpaceMonoRegular,
     },
     eyeIcon: {
         padding: 10,
@@ -92,7 +91,6 @@ const styles = StyleSheet.create({
         color: 'red',
         fontSize: 12,
         marginTop: 4,
-        fontFamily: fontfamily.SpaceMonoBold,
     },
 });
 

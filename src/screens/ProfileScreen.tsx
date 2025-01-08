@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -9,6 +9,7 @@ import { BottomTabParamList } from '../navigation/BottomBarNavigator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {API_URL} from '@env'
+import { useFocusEffect } from '@react-navigation/native';
 
 type ProfileScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Main'> & BottomTabNavigationProp<BottomTabParamList, 'Profile'>;
 
@@ -19,6 +20,13 @@ type ProfileScreenProps = {
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [profile, setProfile] = useState<{ username: string; email: string } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useFocusEffect(
+    useCallback(()=>{
+      setLoading(true)
+      fetchProfile()
+    },[])
+  )
 
   const fetchProfile = async () => {
     try {
@@ -38,16 +46,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     }
   };
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
   const handleLogout = async () => {
     await AsyncStorage.removeItem('token');
     navigation.replace('Auth',{screen : 'Login'});
   };
-
-  console.log(API_URL)
 
   if (loading) {
     return (

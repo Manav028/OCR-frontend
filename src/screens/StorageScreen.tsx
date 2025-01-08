@@ -64,6 +64,7 @@ const StorageScreen: React.FC<StorageScreenProps> = ({navigation}) => {
 
   useFocusEffect(
     useCallback(() => {
+      setLoading(false)
       if (token) {
         fetchScannedData(token);
       }

@@ -37,7 +37,7 @@ const OcrTranslationScreen = () => {
   }, [extractedText]);
 
   const handleTranslate = async () => {
-    console.log(API_URL)
+    
     if (!editableText.trim()) {
       Alert.alert('Error', 'No text available to translate.');
       return;
@@ -49,6 +49,7 @@ const OcrTranslationScreen = () => {
     }
 
     try {
+      console.log(API_URL)
       setLoading(true);
       const response = await axios.post(
         `${API_URL}/api/translate`,
@@ -82,21 +83,16 @@ const OcrTranslationScreen = () => {
 
           <View style={styles.textSection}>
             <Text style={styles.sectionTitle}>Extracted Text</Text>
-            <ScrollView
-              style={[styles.textBox, { maxHeight: maxHeight }]}
-              contentContainerStyle={styles.scrollViewContent}
-              nestedScrollEnabled={true}
-              showsVerticalScrollIndicator={true}
-            >
-              <TextInput
-                style={styles.textInput}
-                value={editableText}
-                onChangeText={(text) => setEditableText(text)}
-                multiline
-                editable
-                textAlignVertical="top" // Ensures text starts from the top
-              />
-            </ScrollView>
+            <View style={styles.cardContainer}>
+                        <ScrollView style={{ height: maxHeight }} nestedScrollEnabled>
+                        <TextInput
+                          style={styles.textInput}
+                          value={editableText}
+                          onChangeText={(text) => setEditableText(text)} 
+                          multiline
+                        />
+                        </ScrollView>
+                        </View>
           </View>
 
           <View style={styles.languageButtonsSection}>
@@ -205,11 +201,11 @@ const styles = StyleSheet.create({
   textBox: {
     borderWidth: 2,
     borderRadius: 10,
-    padding: 0, // Remove internal padding from the ScrollView container
+    padding: 0,
     fontSize: 16,
-    maxHeight: 300, // Restricts the height of the ScrollView
-    minHeight: 150, // Minimum height for smaller text
-    overflow: 'hidden', // Prevents content overflow
+    maxHeight: 300, 
+    minHeight: 150, 
+    overflow: 'hidden', 
     borderColor: 'black',
   },
   nonEditableTextBox: {
@@ -242,9 +238,17 @@ const styles = StyleSheet.create({
   },
 
   textInput: {
-    padding: 12, // Padding for the actual input text
+    padding: 12, 
     fontSize: 16,
-    textAlignVertical: 'top', // Ensures text starts from the top
+    textAlignVertical: 'top', 
+  },
+  cardContainer: {
+    width: '100%',
+    borderRadius: 15,
+    padding: 15,
+    shadowRadius: 5,
+    borderColor: '#E4E0E1',
+    borderWidth: 2,
   },
 });
 

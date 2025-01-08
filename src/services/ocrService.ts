@@ -4,9 +4,10 @@ import { Buffer } from 'buffer'
 global.Buffer = Buffer
 import RNFS from 'react-native-fs'
 
+
 const speelingCorrectText = async (text: string): Promise<string | null> => {
   try {
-    console.log(API_URL)
+    
     
     const response = await axios.post(
       `${API_URL}/api/chatgpt/spelling`,
@@ -57,7 +58,6 @@ export const extractTextFromImage = async (imagePath: string): Promise<string | 
     if (extractedText) {
       console.log('Extracted Text (Image):', extractedText);
       return extractedText
-      // return await speelingCorrectText(extractedText); // Apply spelling correction
     } else {
       console.warn('No text extracted from the image.');
       return null;
@@ -189,7 +189,6 @@ export const extractTextFromImageStorage = async (imageUrl: string): Promise<str
       if (extractedText) {
         console.log('Extracted Text (Image):', extractedText);
         return extractedText
-        // return await speelingCorrectText(extractedText); // Apply spelling correction
       } else {
         console.warn('No text extracted from the image.');
         return null;

@@ -38,6 +38,7 @@
     "react-native-screens": "^4.3.0",
     "react-native-swiper": "^1.6.0",
     "react-native-vector-icons": "^10.2.0",
+    "react-native-video": "^6.9.0",
     "react-redux": "^9.2.0",
     "yup": "^1.4.0"
   },

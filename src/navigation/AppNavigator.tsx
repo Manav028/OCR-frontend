@@ -7,6 +7,7 @@ import { BottomBarNavigator } from './BottomBarNavigator';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import OCRBottomBarNavigator from './OCRBottomBarNavigator';
+import Video from 'react-native-video';
 
 const Stack = createNativeStackNavigator();
 
@@ -42,12 +43,17 @@ const AppNavigator = () => {
   if (!isSplashComplete) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={styles.text}>Checking authentication status...</Text>
+        <Video
+          source={require('../../assets/video/OCR1.mp4')}
+          style={styles.video}
+          resizeMode="contain" 
+          onEnd={() => setIsSplashComplete(true)} 
+          repeat={false} 
+          muted={false} 
+        />
       </View>
     );
   }
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
@@ -56,7 +62,7 @@ const AppNavigator = () => {
             <>
               <Stack.Screen name="Main" component={BottomBarNavigator} />
               <Stack.Screen name="OCR" component={OCRBottomBarNavigator} />
-              <Stack.Screen name="Auth" component={AuthNavigator}/>
+              <Stack.Screen name="Auth" component={AuthNavigator} />
             </>
           ) : (
             <>
@@ -69,6 +75,7 @@ const AppNavigator = () => {
     </GestureHandlerRootView>
   );
 };
+
 
 export default AppNavigator;
 
@@ -83,5 +90,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#333',
+  },
+  video: {
+    width: '90%',
+    height: '100%',
   },
 });

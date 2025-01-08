@@ -41,13 +41,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: height > 600 ? 32 : 28,
     color: Colors.primartext,
-    fontFamily : fontfamily.SpaceMonoBold,
     textAlign : 'center',
 },
 subtitle: {
     fontSize: height > 600 ? 16 : 14,
     textAlign: 'center',
     width : '100%',
-    fontFamily: fontfamily.SpaceMonoRegular,
   },
 });

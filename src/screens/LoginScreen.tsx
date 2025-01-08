@@ -25,6 +25,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
     const [passwordError, setPasswordError] = useState<string | null>(null);
     const [loginError, setLoginError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    
 
     const resetState = () => {
         setEmail('');
@@ -55,16 +56,17 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
 
     const handleLogin = async () => {
 
+        console.log(API_URL)
         setEmailError(null)
         setPasswordError(null)
         setLoginError(null)
-        console.log(API_URL)
 
         if (!handleEmpty()) {
             return;
         }
-        console.log(API_URL)
+
         try {
+            console.log(API_URL)
             setLoading(true)
             const response = await axios.post(`${API_URL}/api/auth/signin`, { email, password });
             if (response.data && response.data.token) {
@@ -122,12 +124,12 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
             <CustomStatusBar
                 backgroundColor={Colors.primarybackground}
                 translucent={false}
-            />
+                barStyle='dark-content'/>
 
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            >
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+                    
                 <ScrollView
                     style={Globalcss.ScroolViewContainer}
                     keyboardShouldPersistTaps="handled"
@@ -203,7 +205,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
         marginTop: 12,
-        fontFamily : fontfamily.SpaceMonoRegular
     },
     lineContainer: {
         alignSelf: 'center',
@@ -215,11 +216,9 @@ const styles = StyleSheet.create({
         color: Colors.primartext,
         fontSize: 14,
         textAlign: 'center',
-        fontFamily: fontfamily.SpaceMonoRegular,
     },
     registerLink: {
         color: Colors.primartext,
-        fontFamily: fontfamily.SpaceMonoBold,
     },
 });
 

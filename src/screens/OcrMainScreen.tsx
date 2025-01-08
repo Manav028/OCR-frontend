@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomStatusBar from '../components/CustomStatusBar';
 
 const OCRMainScreen: React.FC = () => {
-  const { extractedText } = useSelector((state: any) => state.ocr);
+  const { imagePath, extractedText } = useSelector((state: any) => state.ocr);
 
   const HeightScreen = Dimensions.get('screen').height;
 
