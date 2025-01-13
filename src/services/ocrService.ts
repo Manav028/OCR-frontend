@@ -1,14 +1,13 @@
 import { GOOGLE_CLOUD_API_KEY, AZURE_ENDPOINT, AZURE_API_KEY, API_URL } from '@env';
 import axios from 'axios';
 import { Buffer } from 'buffer'
+import { Console } from 'console';
 global.Buffer = Buffer
 import RNFS from 'react-native-fs'
 
 
 const speelingCorrectText = async (text: string): Promise<string | null> => {
   try {
-    
-    
     const response = await axios.post(
       `${API_URL}/api/chatgpt/spelling`,
       { text },
@@ -28,7 +27,7 @@ const speelingCorrectText = async (text: string): Promise<string | null> => {
 
 export const extractTextFromImage = async (imagePath: string): Promise<string | null> => {
   const base64Image = await RNFS.readFile(imagePath, 'base64')
-
+  console.log("Google Api")
   try {
     const requestBody = {
       requests: [
@@ -44,7 +43,6 @@ export const extractTextFromImage = async (imagePath: string): Promise<string | 
         },
       ],
     };
-
     const response = await axios.post(
       `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_CLOUD_API_KEY}`,
       requestBody,
@@ -69,6 +67,7 @@ export const extractTextFromImage = async (imagePath: string): Promise<string | 
 };
 
 export const extractTextFromHandwriting = async (imagePath: string): Promise<string | null> => {
+  console.log("Azure")
   try {
 
     // Step 1: Read the image as a base64 string
@@ -141,8 +140,9 @@ export const extractTextFromHandwriting = async (imagePath: string): Promise<str
 
 export const extractTextFromImageStorage = async (imageUrl: string): Promise<string | null> => {
   let localFilePath = '';
-
+  console.log("Storage")
   try {
+    
     const fileName = `temp_${Date.now()}.jpg`;
     localFilePath = `${RNFS.CachesDirectoryPath}/${fileName}`;
 
@@ -213,7 +213,7 @@ export const extractTextFromImageStorage = async (imageUrl: string): Promise<str
 };
 
 export const extracttextfrompdf = async (fileUri: string) => {
-
+  console.log("Pdf")
   try {
     const extractFormData = new FormData();
     extractFormData.append('file', {
@@ -221,7 +221,7 @@ export const extracttextfrompdf = async (fileUri: string) => {
       type: 'application/pdf',
       name: 'document.pdf',
     });
-
+    console.log(API_URL)
     const response = await axios.post(`${API_URL}/api/pdf/ocr`, extractFormData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });

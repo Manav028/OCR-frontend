@@ -30,10 +30,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
 
   const fetchProfile = async () => {
     try {
-      
       const token = await AsyncStorage.getItem('token');
-      if (!token) throw new Error('No token found');
-
+      if (!token) {
+        throw new Error('No token found');
+        
+      }
+      console.log("profile")            
       const response = await axios.get(`${API_URL}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });

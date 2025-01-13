@@ -24,7 +24,7 @@ const OcrTranslationScreen = () => {
   const { imagePath, extractedText } = useSelector((state: any) => state.ocr);
 
   const screenHeight = Dimensions.get('window').height;
-  const maxHeight = screenHeight * 0.25;
+  const maxHeight = screenHeight * 0.19;
 
   const [editableText, setEditableText] = useState<string>(extractedText || '');
   const [translatedText, setTranslatedText] = useState<string | null>(null);
@@ -37,7 +37,7 @@ const OcrTranslationScreen = () => {
   }, [extractedText]);
 
   const handleTranslate = async () => {
-    
+
     if (!editableText.trim()) {
       Alert.alert('Error', 'No text available to translate.');
       return;
@@ -49,7 +49,7 @@ const OcrTranslationScreen = () => {
     }
 
     try {
-      console.log(API_URL)
+      console.log("Translation")
       setLoading(true);
       const response = await axios.post(
         `${API_URL}/api/translate`,
@@ -58,7 +58,6 @@ const OcrTranslationScreen = () => {
           headers: { 'Content-Type': 'application/json' },
         }
       );
-
       setTranslatedText(response.data.translated);
     } catch (error: any) {
       console.error('Translation Error:', error.message);
@@ -84,15 +83,15 @@ const OcrTranslationScreen = () => {
           <View style={styles.textSection}>
             <Text style={styles.sectionTitle}>Extracted Text</Text>
             <View style={styles.cardContainer}>
-                        <ScrollView style={{ height: maxHeight }} nestedScrollEnabled>
-                        <TextInput
-                          style={styles.textInput}
-                          value={editableText}
-                          onChangeText={(text) => setEditableText(text)} 
-                          multiline
-                        />
-                        </ScrollView>
-                        </View>
+              <ScrollView style={{ height: maxHeight }} nestedScrollEnabled>
+                <TextInput
+                  style={styles.textInput}
+                  value={editableText}
+                  onChangeText={(text) => setEditableText(text)}
+                  multiline
+                />
+              </ScrollView>
+            </View>
           </View>
 
           <View style={styles.languageButtonsSection}>
@@ -146,20 +145,21 @@ const OcrTranslationScreen = () => {
 
           {translatedText && (
             <View style={styles.textSection}>
-              <Text style={styles.sectionTitle}>Translated Text</Text>
-              <TextInput
-                style={[
-                  styles.nonEditableTextBox,
-                  { minHeight: 150 },
-                  { maxHeight: maxHeight },
-                ]}
-                value={translatedText || ''}
-                editable={false}
-                multiline
-              />
-              <Text style={[styles.readOnlyText, { marginBottom: 50 }]}>* This text is read-only</Text>
+              <Text style={styles.sectionTitle}>Translate Text</Text>
+              <View style={styles.cardContainer}>
+                <ScrollView style={{ height: maxHeight }} nestedScrollEnabled>
+                  <TextInput
+                    style={[styles.textInput, styles.nonEditableText]}
+                    value={translatedText || ''}
+                    editable={false}
+                    multiline
+                  />
+                </ScrollView>
+              </View>
+              <Text style={styles.readOnlyHint}>* This text is read-only</Text>
             </View>
           )}
+
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -203,9 +203,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 0,
     fontSize: 16,
-    maxHeight: 300, 
-    minHeight: 150, 
-    overflow: 'hidden', 
+    maxHeight: 300,
+    minHeight: 150,
+    overflow: 'hidden',
     borderColor: 'black',
   },
   nonEditableTextBox: {
@@ -238,9 +238,9 @@ const styles = StyleSheet.create({
   },
 
   textInput: {
-    padding: 12, 
+    padding: 12,
     fontSize: 16,
-    textAlignVertical: 'top', 
+    textAlignVertical: 'top',
   },
   cardContainer: {
     width: '100%',
@@ -249,6 +249,17 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     borderColor: '#E4E0E1',
     borderWidth: 2,
+  },
+  nonEditableText: {
+    backgroundColor: '#f0f0f0', // Light gray background to indicate non-editable
+    color: '#666', // Subtle text color
+    borderColor: '#ccc', // Softer border
+  },
+  readOnlyHint: {
+    fontSize: 12,
+    color: 'gray',
+    marginTop: 5,
+    fontStyle: 'italic',
   },
 });
 

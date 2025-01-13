@@ -66,7 +66,7 @@ const LoginScreen = ({ navigation }: LoginScreenProps) => {
         }
 
         try {
-            console.log(API_URL)
+            console.log("sign-in")
             setLoading(true)
             const response = await axios.post(`${API_URL}/api/auth/signin`, { email, password });
             if (response.data && response.data.token) {

@@ -8,8 +8,35 @@ import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import OCRBottomBarNavigator from './OCRBottomBarNavigator';
 import Video from 'react-native-video';
+import CustomStatusBar from '../components/CustomStatusBar';
 
 const Stack = createNativeStackNavigator();
+
+const SplashScreen = ({ onComplete }: { onComplete: () => void }) => {
+  const [isVideoReady, setIsVideoReady] = useState(false);
+
+  return (
+    <View style={styles.splashContainer}>
+      {!isVideoReady && (
+        <ActivityIndicator size="large" color="black" style={styles.loader} />
+      )}
+      <CustomStatusBar barStyle="light-content" backgroundColor="white" />
+      <Video
+        source={require('../../assets/video/OCR1.mp4')} // Ensure this path is correct
+        style={styles.video}
+        resizeMode="contain"
+        onLoad={() => setIsVideoReady(true)}
+        onEnd={onComplete}
+        repeat={false}
+        muted={false}
+        paused={false} // Ensures the video plays immediately
+        controls={false} // Hides video controls
+        onError={(e) => console.error('Video Error:', e)} // Logs video errors
+      />
+      <Text style={styles.welcomeText}>Welcome To OCR</Text>
+    </View>
+  );
+};
 
 const AppNavigator = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -19,7 +46,6 @@ const AppNavigator = () => {
     const checkLoginStatus = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        console.log(token)
         if (token) {
           setIsAuthenticated(true);
         } else {
@@ -31,29 +57,13 @@ const AppNavigator = () => {
       }
     };
 
-    const splashTimer = setTimeout(() => {
-      setIsSplashComplete(true);
-    }, 3000);
-
     checkLoginStatus();
-
-    return () => clearTimeout(splashTimer);
   }, []);
 
   if (!isSplashComplete) {
-    return (
-      <View style={styles.container}>
-        <Video
-          source={require('../../assets/video/OCR1.mp4')}
-          style={styles.video}
-          resizeMode="contain" 
-          onEnd={() => setIsSplashComplete(true)} 
-          repeat={false} 
-          muted={false} 
-        />
-      </View>
-    );
+    return <SplashScreen onComplete={() => setIsSplashComplete(true)} />;
   }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
@@ -76,23 +86,29 @@ const AppNavigator = () => {
   );
 };
 
-
 export default AppNavigator;
 
 const styles = StyleSheet.create({
-  container: {
+  splashContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
   },
-  text: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#333',
+  loader: {
+    position: 'absolute',
+    zIndex: 1,
   },
   video: {
-    width: '90%',
-    height: '100%',
+    width: '100%',
+    height: '80%',
+    backgroundColor: '#fff',
+  },
+  welcomeText: {
+    marginTop: 20,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000',
+    textAlign: 'center',
   },
 });

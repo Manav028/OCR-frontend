@@ -73,6 +73,7 @@ const StorageScreen: React.FC<StorageScreenProps> = ({navigation}) => {
 
   const fetchScannedData = useCallback(async (authToken: string) => {
     try {
+      console.log("History")
       setLoading(true);
       const response = await axios.get(`${API_URL}/api/upload/user-documents`, {
         headers: {
@@ -98,7 +99,6 @@ const StorageScreen: React.FC<StorageScreenProps> = ({navigation}) => {
 
   const handleProcessText = async (imagePath: string, isHandwriting: boolean) => {
       try {
-        console.log(API_URL)
         setLoading(true);
         const extractedText = await extractTextFromImageStorage(imagePath);
         dispatch(SetOCRData({ imagePath, extractedText }));
@@ -152,9 +152,6 @@ const StorageScreen: React.FC<StorageScreenProps> = ({navigation}) => {
         <Text style={styles.fileName}>{item.name}</Text>
         <Text style={styles.fileDate}>{item.date}</Text>
       </View>
-      <TouchableOpacity style={styles.moreButton}>
-        <Text style={styles.moreButtonText}>⋮</Text>
-      </TouchableOpacity>
     </TouchableOpacity>
   );
 

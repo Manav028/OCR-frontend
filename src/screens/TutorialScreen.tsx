@@ -13,12 +13,12 @@ const slides = [
     {
         key: '1',
         title: 'Welcome to OCR Master',
-        text: 'Extract and summarize text from images effortlessly!',
+        text: 'Extract, translate, and summarize text from images effortlessly!',
     },
     {
         key: '2',
-        title: 'Streamline Your Workflow',
-        text: 'Convert images to text and quickly generate summaries.',
+        title: 'Extract from Images and PDFs',
+        text: 'You can extract text from both images and PDF files.',
     },
     {
         key: '3',
@@ -26,7 +26,6 @@ const slides = [
         text: 'Organize extracted text and share it with ease.',
     },
 ];
-
 type TutorialScreenProps = NativeStackScreenProps<AuthStackParamList, 'TutorialScreen'>;
 
 const TutorialScreen: React.FC<TutorialScreenProps> = ({ navigation }) => {
@@ -149,7 +148,6 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: FontSizes.large,
-        fontFamily: fontfamily.SpaceMonoBold,
         color: Colors.primartext,
         textAlign: 'center',
         marginBottom: 10,
@@ -159,7 +157,6 @@ const styles = StyleSheet.create({
         color: Colors.secondarytext,
         textAlign: 'center',
         marginBottom: 20,
-        fontFamily: fontfamily.SpaceMonoRegular,
     },
     navigationContainer: {
         flexDirection: 'row',
@@ -170,9 +167,11 @@ const styles = StyleSheet.create({
     },
     halfWidthButton: {
         width: '48%',
+        borderRadius : '10'
     },
     getstartedbtn: {
         width: '80%',
+        borderRadius : '15'
     },
 });
 

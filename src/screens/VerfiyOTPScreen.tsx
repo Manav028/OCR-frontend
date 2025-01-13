@@ -19,7 +19,7 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenPorps> = ({ route, na
 
     const handleVerifyOTP = async () => {
         setOTPError(null);
-
+        console.log("vreifyotp")
         if (otp.trim().length === 0) {
             setOTPError('OTP is required');
             return;
@@ -44,7 +44,9 @@ const OTPVerificationScreen: React.FC<OTPVerificationScreenPorps> = ({ route, na
     };
 
     const handleResendOTP = async () => {
+        console.log("verify-otp")
         try {
+            console.log("manav")            
             await axios.post(`${API_URL}/api/auth/resendOTP`, { email });
             Alert.alert('Success', 'A new OTP has been sent to your email.');
         } catch (err) {

@@ -62,9 +62,8 @@ const RegisterScreen: React.FC<RegisterScreenProp> = ({ navigation }: RegisterSc
         }
 
         try {
-            console.log("Manav")
             setLoading(true)
-
+            console.log("signup")
             const response = await axios.post(`${API_URL}/api/auth/signup`, { username, email, password })
             if (response.data && response.data.token) {
                 await AsyncStorage.setItem('token', response.data.token);

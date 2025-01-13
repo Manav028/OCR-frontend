@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, Text, View, Image, Alert, PermissionsAndroid, FlatList, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -34,6 +34,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [handwrittenModalVisible, setHandwrittenModalVisible] = useState(false);
+  const [profile, setProfile] = useState<{ username: string} | null>(null);
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -51,6 +52,13 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     fetchToken();
   }, []);
 
+  useFocusEffect(
+      useCallback(()=>{
+        setLoading(true)
+        fetchProfile()
+      },[])
+    )
+
 
   const ImageExtension = (imagePath: string): string => {
     const extension = imagePath.split('.').pop()?.toLowerCase();
@@ -67,6 +75,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
   const uploadFile = async (formData: FormData): Promise<any> => {
     try {
+      console.log("Upload Database")
       const response = await axios.post(`${API_URL}/api/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -81,6 +90,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   };
 
   const handleProcessText = async (imagePath: string, isHandwriting: boolean) => {
+    console.log("Processed Text")
     try {
       setLoading(true);
       const extractedText = isHandwriting
@@ -158,7 +168,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   const handlepickPDF = async () => {
     try {
       setLoading(true);
-
+      console.log("Handle PDF")
       const res = await DocumentPicker.pick({
         type: [DocumentPicker.types.pdf],
       });
@@ -170,15 +180,11 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         type: 'application/pdf',
         name: res[0]?.name || 'document.pdf',
       });
-
       const response = await axios.post(`${API_URL}/api/pdf/ocr`, extractFormData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       const extractedText = response.data.text;
-
-
-      console.log(token)
 
       const uploadFormData = new FormData();
       uploadFormData.append('document', {
@@ -187,7 +193,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         name: res[0]?.name || 'document.pdf',
       });
       uploadFormData.append('fileType', 'pdf');
-
+      
       const uploadResponse = await axios.post(`${API_URL}/api/upload`, uploadFormData, {
         headers: {
           Accept: 'application/json',
@@ -240,6 +246,25 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     });
   };
 
+  const fetchProfile = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found');
+        
+      }
+      console.log("profile")            
+      const response = await axios.get(`${API_URL}/api/auth/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProfile(response.data.username);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleModalClose = () => {
     setModalVisible(false);
@@ -272,7 +297,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <View style={styles.welcomeContainer}>
           <Text style={styles.helloText}>Hello</Text>
-          <Text style={styles.userNameText}>Manav,</Text>
+          <Text style={styles.userNameText}>{profile}</Text>
         </View>
 
         <View style={styles.TextContainer}>

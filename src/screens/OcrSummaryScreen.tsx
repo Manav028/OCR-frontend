@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,27 +8,23 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ActivityIndicator,
-  Dimensions
+  Dimensions,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { API_URL } from '@env';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomStatusBar from '../components/CustomStatusBar';
-import { Colors, fontfamily } from '../styles/Globalcss';
 import MainButton from '../components/MainButton';
 
-const OcrTranslationScreen = () => {
-
-  const { imagePath, extractedText } = useSelector((state : any) => state.ocr);
+const OCRSummaryScreen = () => {
+  const { extractedText } = useSelector((state: any) => state.ocr);
 
   const screenHeight = Dimensions.get('window').height;
   const maxHeight = screenHeight * 0.25;
 
-  const [editableText, setEditableText] = useState<string>(extractedText || ''); 
-  const [translatedText, setTranslatedText] = useState<string | null>(null);
-  const [summarytext, setsummarytext] = useState<string | null>(null);
+  const [editableText, setEditableText] = useState<string>(extractedText || '');
+  const [summaryText, setSummaryText] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSummarize = async () => {
@@ -37,7 +33,6 @@ const OcrTranslationScreen = () => {
       return;
     }
 
-    
     try {
       setLoading(true);
       const response = await axios.post(
@@ -47,9 +42,9 @@ const OcrTranslationScreen = () => {
           headers: { 'Content-Type': 'application/json' },
         }
       );
-  
+
       const summary = response.data.summary;
-      setsummarytext(summary);
+      setSummaryText(summary);
     } catch (error: any) {
       console.error('Summarization Error:', error.message);
       Alert.alert('Error', 'Failed to summarize text.');
@@ -59,13 +54,12 @@ const OcrTranslationScreen = () => {
   };
 
   const handleClearText = () => {
-    setEditableText(''); 
-    setsummarytext('');
+    setSummaryText('');
   };
 
   return (
     <SafeAreaView style={styles.safeAreaContainer}>
-      <CustomStatusBar backgroundColor='black' barStyle='light-content'/>
+      <CustomStatusBar backgroundColor="black" barStyle="light-content" />
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -74,58 +68,62 @@ const OcrTranslationScreen = () => {
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
         >
-
           <View style={styles.textSection}>
             <Text style={styles.sectionTitle}>Extracted Text</Text>
             <View style={styles.cardContainer}>
-            <ScrollView style={{ height: maxHeight }} nestedScrollEnabled>
-            <TextInput
-              style={styles.textInput}
-              value={editableText}
-              onChangeText={(text) => setEditableText(text)} 
-              multiline
-            />
-            </ScrollView>
+              <ScrollView style={{ height: maxHeight }} nestedScrollEnabled>
+                <TextInput
+                  style={styles.textInput}
+                  value={editableText}
+                  onChangeText={(text) => setEditableText(text)}
+                  multiline
+                />
+              </ScrollView>
             </View>
           </View>
 
           <View style={styles.buttonSection}>
-            <MainButton title="Summary" Style={{ width: '48%' }} onPress={handleSummarize}  />
-            <MainButton title="Clear" Style={{ width: '48%' }} onPress={handleClearText}  />
-          </View>
-
-          <View style={styles.textSection}>
-            <Text style={styles.sectionTitle}>Summary Text</Text>
-            <View style={styles.cardContainer}>
-            <ScrollView style={{ height: maxHeight }} nestedScrollEnabled>
-            <TextInput
-              style={styles.textInput}
-              value={summarytext || ''}
-              onChangeText={setsummarytext}
-              multiline
+            <MainButton
+              title="Summary"
+              Style={{ width: '48%' }}
+              onPress={handleSummarize}
+              loading={loading} // Use loading prop here
             />
-            </ScrollView>
+            <MainButton
+              title="Clear"
+              Style={{ width: '48%' }}
+              onPress={handleClearText}
+            />
+          </View>
+
+          {summaryText && (
+            <View style={styles.textSection}>
+              <Text style={styles.sectionTitle}>Summary Text</Text>
+              <View style={styles.cardContainer}>
+                <ScrollView style={{ height: maxHeight }} nestedScrollEnabled>
+                  <TextInput
+                    style={[styles.textInput, styles.nonEditableText]}
+                    value={summaryText || ''}
+                    editable={false} // Make the TextInput non-editable
+                    multiline
+                  />
+                </ScrollView>
+              </View>
+              <Text style={styles.readOnlyHint}>* This text is read-only</Text>
             </View>
-          </View>
-
+          )}
         </ScrollView>
-
-        {loading && (
-          <View style={styles.loaderOverlay}>
-            <ActivityIndicator size="large" color="#007bff" />
-          </View>
-        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
-export default OcrTranslationScreen;
+export default OCRSummaryScreen;
 
 const styles = StyleSheet.create({
   safeAreaContainer: {
     flex: 1,
-    paddingBottom : 0
+    paddingBottom: 0,
   },
   container: {
     flex: 1,
@@ -135,12 +133,6 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 0,
   },
-  screenTitle: {
-    fontSize: 24,
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
   textSection: {
     marginBottom: 20,
   },
@@ -149,46 +141,6 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#444',
     marginBottom: 10,
-  },
-  textBox: {
-    borderWidth: 2,
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 16,
-    textAlignVertical: 'top',
-    minHeight: 150,
-  },
-  textBoxFilled: {
-    borderColor: 'black',
-  },
-  textBoxEmpty: {
-    borderColor: 'black',
-  },
-  pickerSection: {
-    marginBottom: 40,
-  },
-  pickerContainer: {
-    borderWidth: 2,
-    borderRadius: 10,
-    borderColor: 'black',
-    padding: 5,
-  },
-  buttonSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom : 20
-  },
-  loaderOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
   },
   textInput: {
     color: 'black',
@@ -203,25 +155,21 @@ const styles = StyleSheet.create({
     borderColor: '#E4E0E1',
     borderWidth: 2,
   },
+  buttonSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  nonEditableText: {
+    backgroundColor: '#f0f0f0', // Light gray background to indicate non-editable
+    color: '#666', // Subtle text color
+    borderColor: '#ccc', // Softer border
+  },
+  readOnlyHint: {
+    fontSize: 12,
+    color: 'gray',
+    marginTop: 5,
+    fontStyle: 'italic',
+  },
 });
-
-const pickerStyles = {
-  inputIOS: {
-    fontSize: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    color: Colors.thirdbackground,
-    backgroundColor: Colors.fourthbackgroound,
-    fontfamily: fontfamily.SpaceMonoRegular,
-  },
-  inputAndroid: {
-    fontSize: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    color: Colors.thirdbackground,
-    backgroundColor: Colors.fourthbackgroound,
-    fontfamily: fontfamily.SpaceMonoRegular,
-  },
-};
